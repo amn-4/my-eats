@@ -1,3 +1,5 @@
+// src\app\api\restaurants\[id]\route.ts
+
 import { db } from "../../../../../lib/drizzle";
 import { restaurants } from "../../../../../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -55,9 +57,12 @@ export async function PUT(
     // build updates object with only defined fields
     // restaurants.$inferInsert looks at drizzle schema and creates all the fields and their types
     // Partial<...> makes all fields optional (when updating a restaurant, you might change only 1 or 2 fields)
-    const updates: Partial<typeof restaurants.$inferInsert> = {};
+    const updates: Partial<typeof restaurants.$inferInsert> = {}; // start with empty object
     
-    if (body.name !== undefined) updates.name = body.name;
+    // checks name of restaurant
+    if (body.name !== undefined) // is name in the request?
+        updates.name = body.name; // if so, add it: updates = { name: "example name" } & if not, skip line
+    // etc
     if (body.suburb !== undefined) updates.suburb = body.suburb;
     if (body.cuisine !== undefined) updates.cuisine = body.cuisine;
     if (body.url !== undefined) updates.url = body.url;
@@ -86,6 +91,42 @@ export async function PUT(
     console.error("PUT /api/restaurants/[id] error:", error);
     return NextResponse.json(
       { error: "Failed to update restaurant" },
+      { status: 500 }
+    );
+  }
+}
+
+// ----------------------------
+// DELETE /api/restaurants/:id
+// ----------------------------
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    // parse the id
+    const { id } = await params;
+    
+    // delete from database
+    const deleted = await db
+      .delete(restaurants)
+      .where(eq(restaurants.id, id))
+      .returning();
+    
+    // if nothing was deleted, restaurant doesn't exist
+    if (deleted.length === 0) {
+      return NextResponse.json(
+        { error: "Restaurant not found" },
+        { status: 404 }
+      );
+    }
+    
+    // return success
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    console.error("DELETE /api/restaurants/[id] error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete restaurant" },
       { status: 500 }
     );
   }

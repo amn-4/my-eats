@@ -1,3 +1,5 @@
+// src\app\api\restaurants\route.ts
+
 import { db } from "../../../../lib/drizzle";
 import { restaurants } from "../../../../drizzle/schema";
 import { NextResponse } from "next/server";
