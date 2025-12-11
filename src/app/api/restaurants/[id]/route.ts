@@ -1,7 +1,7 @@
 // src\app\api\restaurants\[id]\route.ts
 
 import { db } from "../../../../../lib/drizzle";
-import { restaurants } from "../../../../../drizzle/schema";
+import { restaurants, restaurantDietaryTags, suburbs, cuisines, dietaryTags } from "../../../../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -15,10 +15,16 @@ export async function GET(
   try {
     const { id } = await params;
     
-    // query database for this specific restaurant
+    // query with joins
     const result = await db
-      .select() 
+      .select({
+        restaurant: restaurants,
+        suburb: suburbs,
+        cuisine: cuisines,
+      })
       .from(restaurants)
+      .leftJoin(suburbs, eq(restaurants.suburbId, suburbs.id))
+      .leftJoin(cuisines, eq(restaurants.cuisineId, cuisines.id))
       .where(eq(restaurants.id, id))
       .limit(1);
     
@@ -29,9 +35,23 @@ export async function GET(
         { status: 404 }
       );
     }
+
+    // fetch dietary tags
+    const tags = await db
+      .select({ tag: dietaryTags })
+      .from(restaurantDietaryTags)
+      .leftJoin(dietaryTags, eq(restaurantDietaryTags.dietaryTagId, dietaryTags.id))
+      .where(eq(restaurantDietaryTags.restaurantId, id));
+    
+    const restaurant = {
+      ...result[0].restaurant,
+      suburb: result[0].suburb,
+      cuisine: result[0].cuisine,
+      dietaryTags: tags.map(t => t.tag).filter(Boolean),
+    };
     
     // return restaurant
-    return NextResponse.json(result[0]);
+    return NextResponse.json(restaurant);
   } catch (error) {
     console.error("GET /api/restaurants/[id] error:", error);
     return NextResponse.json(
@@ -63,11 +83,10 @@ export async function PUT(
     if (body.name !== undefined) // is name in the request?
         updates.name = body.name; // if so, add it: updates = { name: "example name" } & if not, skip line
     // etc
-    if (body.suburb !== undefined) updates.suburb = body.suburb;
-    if (body.cuisine !== undefined) updates.cuisine = body.cuisine;
+    if (body.suburbId !== undefined) updates.suburbId = body.suburb;
+    if (body.cuisineId !== undefined) updates.cuisineId = body.cuisine;
     if (body.url !== undefined) updates.url = body.url;
     if (body.source !== undefined) updates.source = body.source;
-    if (body.dietaryTags !== undefined) updates.dietaryTags = body.dietaryTags;
     if (body.openingHours !== undefined) updates.openingHours = body.openingHours;
     
     // update database
@@ -82,6 +101,24 @@ export async function PUT(
         { error: "Restaurant not found" },
         { status: 404 }
       );
+    }
+
+    // handle dietary tags if provided
+    if (body.dietaryTagIds !== undefined) {
+      // delete existing tags
+      await db
+        .delete(restaurantDietaryTags)
+        .where(eq(restaurantDietaryTags.restaurantId, id));
+      
+      // insert new tags
+      if (body.dietaryTagIds.length > 0) {
+        const tagValues = body.dietaryTagIds.map((tagId: string) => ({
+          restaurantId: id,
+          dietaryTagId: tagId,
+        }));
+        
+        await db.insert(restaurantDietaryTags).values(tagValues);
+      }
     }
     
     // return updated row
@@ -107,7 +144,7 @@ export async function DELETE(
     // parse the id
     const { id } = await params;
     
-    // delete from database
+    // delete restaurant from database (dietary tags will cascade delete)
     const deleted = await db
       .delete(restaurants)
       .where(eq(restaurants.id, id))
