@@ -21,6 +21,12 @@ export const dietaryReqs = pgTable("dietary_reqs", {
   createdAt: timestamp({ precision: 3, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const tags = pgTable("tags", {
+  id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  name: text().notNull().unique(),
+  createdAt: timestamp({ precision: 3, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 export const restaurants = pgTable("restaurants", {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
   name: text().notNull(),
@@ -46,4 +52,11 @@ export const restaurantDietaryReqs = pgTable("restaurant_dietary_reqs", {
   dietaryReqId: text().references(() => dietaryReqs.id, { onDelete: 'cascade' }).notNull(),
 }, (table) => ({
   pk: primaryKey({ columns: [table.restaurantId, table.dietaryReqId] }),
+}));
+
+export const restaurantTags = pgTable("restaurant_tags", {
+  restaurantId: text().references(() => restaurants.id, { onDelete: 'cascade' }).notNull(),
+  tagId: text().references(() => tags.id, { onDelete: 'cascade' }).notNull(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.restaurantId, table.tagId] }),
 }));
