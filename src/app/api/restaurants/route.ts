@@ -1,7 +1,7 @@
 // src\app\api\restaurants\route.ts
 
 import { db } from "../../../../lib/drizzle";
-import { restaurants, restaurantDietaryReqs, suburbs, cuisines, dietaryReqs } from "../../../../drizzle/schema";
+import { restaurants, restaurantDietaryReqs, restaurantTags, suburbs, cuisines, dietaryReqs, tags } from "../../../../drizzle/schema";
 import { NextResponse } from "next/server";
 import { eq, and, ilike } from "drizzle-orm";
 
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // handle dietary reqss (converts names to id)
+    // handle dietary reqs (converts names to id)
     const dietaryReqIds: string[] = [];
     if (body.dietaryReqIds && body.dietaryReqIds.length > 0) {
       for (const reqInput of body.dietaryReqIds) {
@@ -89,6 +89,29 @@ export async function POST(req: Request) {
         }
       }
     }
+
+    // handle tags (converts names to id)
+    const tagIds: string[] = [];
+    if (body.tagIds && body.tagIds.length > 0) {
+      for (const tagInput of body.tagIds) {
+        if (tagInput.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+          tagIds.push(tagInput);
+        } else {
+          const existingTag = await db
+            .select()
+            .from(tags)
+            .where(eq(tags.name, tagInput))
+            .limit(1);
+          
+          if (existingTag.length > 0) {
+            tagIds.push(existingTag[0].id);
+          } else {
+            const [newTag] = await db.insert(tags).values({ name: tagInput }).returning();
+            tagIds.push(newTag.id);
+          }
+        }
+      }
+    }
     
     const [restaurant] = await db.insert(restaurants).values({
       name: body.name,
@@ -107,6 +130,16 @@ export async function POST(req: Request) {
       }));
 
       await db.insert(restaurantDietaryReqs).values(reqValues);
+    }
+
+    // handle tags (m:n relationship)
+    if (tagIds.length > 0) {
+      const tagValues = tagIds.map((tagId: string) => ({
+        restaurantId: restaurant.id,
+        tagId: tagId,
+      }));
+
+      await db.insert(restaurantTags).values(tagValues);
     }
     
     return NextResponse.json(restaurant, { status: 201 });
@@ -131,6 +164,7 @@ export async function GET(req: Request) {
     const suburbId = searchParams.get("suburbId");
     const cuisineId = searchParams.get("cuisineId");
     const dietaryReqId = searchParams.get("dietaryReqId");
+    const tagId = searchParams.get("tagId");
     const search = searchParams.get("search"); // for searching by name
     const openNow = searchParams.get("openNow");
     
@@ -179,21 +213,39 @@ export async function GET(req: Request) {
       const ids = restaurantIds.map(r => r.restaurantId);
       results = results.filter(r => ids.includes(r.restaurant.id));
     }
+
+    // filter by tag if specified
+    if (tagId) {
+      const restaurantIds = await db
+        .select({ restaurantId: restaurantTags.restaurantId })
+        .from(restaurantTags)
+        .where(eq(restaurantTags.tagId, tagId));
+      
+      const ids = restaurantIds.map(r => r.restaurantId);
+      results = results.filter(r => ids.includes(r.restaurant.id));
+    }
     
-    // fetch dietary reqs for each restaurant
-    let restaurantsWithReqs = await Promise.all(
+    // fetch dietary reqs and tags for each restaurant
+    let restaurantsWithData = await Promise.all(
       results.map(async (result) => {
         const reqs = await db
           .select({ req: dietaryReqs })
           .from(restaurantDietaryReqs)
           .leftJoin(dietaryReqs, eq(restaurantDietaryReqs.dietaryReqId, dietaryReqs.id))
           .where(eq(restaurantDietaryReqs.restaurantId, result.restaurant.id));
+
+        const restaurantTagsData = await db
+          .select({ tag: tags })
+          .from(restaurantTags)
+          .leftJoin(tags, eq(restaurantTags.tagId, tags.id))
+          .where(eq(restaurantTags.restaurantId, result.restaurant.id));
         
         return {
           ...result.restaurant,
           suburb: result.suburb,
           cuisine: result.cuisine,
           dietaryReqs: reqs.map(t => t.req).filter(Boolean),
+          tags: restaurantTagsData.map(t => t.tag).filter(Boolean),
         };
       })
     );
@@ -204,7 +256,7 @@ export async function GET(req: Request) {
       const dayOfWeek = now.getDay(); // 0 = sunday, 1 = monday, ..., 6 = saturday
       const currentTime = now.getHours() * 100 + now.getMinutes(); // e.g., 1430 for 2:30pm
       
-      restaurantsWithReqs = restaurantsWithReqs.filter(restaurant => {
+      restaurantsWithData = restaurantsWithData.filter(restaurant => {
         // skip restaurants without opening hours data
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const hours = restaurant.openingHours as any;
@@ -235,7 +287,7 @@ export async function GET(req: Request) {
       });
     }
     
-    return NextResponse.json(restaurantsWithReqs, { status: 200 });
+    return NextResponse.json(restaurantsWithData, { status: 200 });
     
   } catch (error) {
     console.error("GET /api/restaurants error:", error);
