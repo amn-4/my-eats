@@ -1,7 +1,7 @@
 // src\app\api\restaurants\[id]\route.ts
 
 import { db } from "../../../../../lib/drizzle";
-import { restaurants, restaurantDietaryReqs, suburbs, cuisines, dietaryReqs } from "../../../../../drizzle/schema";
+import { restaurants, restaurantDietaryReqs, restaurantTags, suburbs, cuisines, dietaryReqs, tags } from "../../../../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -42,12 +42,20 @@ export async function GET(
       .from(restaurantDietaryReqs)
       .leftJoin(dietaryReqs, eq(restaurantDietaryReqs.dietaryReqId, dietaryReqs.id))
       .where(eq(restaurantDietaryReqs.restaurantId, id));
+
+    // fetch tags
+    const restaurantTagsData = await db
+      .select({ tag: tags })
+      .from(restaurantTags)
+      .leftJoin(tags, eq(restaurantTags.tagId, tags.id))
+      .where(eq(restaurantTags.restaurantId, id));
     
     const restaurant = {
       ...result[0].restaurant,
       suburb: result[0].suburb,
       cuisine: result[0].cuisine,
-      dietaryReqs: reqs.map(t => t.req).filter(Boolean),
+      dietaryReqs: reqs.map(r => r.req).filter(Boolean), // for each item "r" in the "reqs" array, get r.req
+      tags: restaurantTagsData.map(t => t.tag).filter(Boolean),
     };
     
     // return restaurant
@@ -136,6 +144,24 @@ export async function PUT(
         await db.insert(restaurantDietaryReqs).values(reqValues);
       }
     }
+
+    // handle tags if provided
+    if (body.tagIds !== undefined) {
+      // delete existing tags
+      await db
+        .delete(restaurantTags)
+        .where(eq(restaurantTags.restaurantId, id));
+      
+      // insert new tags
+      if (body.tagIds.length > 0) {
+        const tagValues = body.tagIds.map((tagId: string) => ({
+          restaurantId: id,
+          tagId: tagId,
+        }));
+        
+        await db.insert(restaurantTags).values(tagValues);
+      }
+    }
     
     // return updated row
     return NextResponse.json(updated[0], { status: 200 });
@@ -160,7 +186,7 @@ export async function DELETE(
     // parse the id
     const { id } = await params;
     
-    // delete restaurant from database (dietary reqs will cascade delete)
+    // delete restaurant from database (dietary reqs and tags will cascade delete)
     const deleted = await db
       .delete(restaurants)
       .where(eq(restaurants.id, id))
