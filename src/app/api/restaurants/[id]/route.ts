@@ -73,6 +73,22 @@ export async function PUT(
     const { id } = await params;
     // parse the json body
     const body = await req.json();
+
+    // checks if at least one field is provided
+    if (Object.keys(body).length === 0) {
+      return NextResponse.json(
+        { error: "No fields provided to update" },
+        { status: 400 }
+      );
+    }
+    
+    // if name is provided, ensure it's not empty
+    if (body.name !== undefined && body.name.trim() === "") {
+      return NextResponse.json(
+        { error: "Name cannot be empty" },
+        { status: 400 }
+      );
+    }
     
     // build updates object with only defined fields
     // restaurants.$inferInsert looks at drizzle schema and creates all the fields and their types
@@ -83,8 +99,8 @@ export async function PUT(
     if (body.name !== undefined) // is name in the request?
         updates.name = body.name; // if so, add it: updates = { name: "example name" } & if not, skip line
     // etc
-    if (body.suburbId !== undefined) updates.suburbId = body.suburb;
-    if (body.cuisineId !== undefined) updates.cuisineId = body.cuisine;
+    if (body.suburbId !== undefined) updates.suburbId = body.suburbId;
+    if (body.cuisineId !== undefined) updates.cuisineId = body.cuisineId;
     if (body.url !== undefined) updates.url = body.url;
     if (body.source !== undefined) updates.source = body.source;
     if (body.openingHours !== undefined) updates.openingHours = body.openingHours;

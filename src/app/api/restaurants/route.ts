@@ -206,6 +206,7 @@ export async function GET(req: Request) {
       
       restaurantsWithTags = restaurantsWithTags.filter(restaurant => {
         // skip restaurants without opening hours data
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const hours = restaurant.openingHours as any;
         if (!hours || !hours.periods) {
           return false;
@@ -213,10 +214,12 @@ export async function GET(req: Request) {
         
         // find periods for today
         const todaysPeriods = hours.periods.filter(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (period: any) => period.open.day === dayOfWeek
         );
         
         // check if currently open
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return todaysPeriods.some((period: any) => {
           const openTime = parseInt(period.open.time);
           const closeTime = period.close ? parseInt(period.close.time) : 2359;

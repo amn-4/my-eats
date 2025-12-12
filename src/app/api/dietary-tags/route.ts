@@ -2,6 +2,7 @@
 
 import { db } from "../../../../lib/drizzle";
 import { dietaryTags } from "../../../../drizzle/schema";
+import { ilike } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 // GET all dietary tags
@@ -29,9 +30,25 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    // checks for duplicates before inserting
+    const existing = await db
+      .select()
+      .from(dietaryTags)
+      .where(ilike(dietaryTags.name, body.name.trim()))
+      .limit(1);
+    
+    if (existing.length > 0) {
+      return NextResponse.json(
+        { error: `"${existing[0].name}" already exists` },
+        { status: 409 }
+      );
+    }
+    
+    const formattedName = body.name.trim().toLowerCase(); // lowercase for dietary tags
     
     const [tag] = await db.insert(dietaryTags).values({
-      name: body.name,
+      name: formattedName,
     }).returning();
     
     return NextResponse.json(tag, { status: 201 });
