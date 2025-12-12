@@ -1,19 +1,19 @@
-// src\app\api\dietary-tags\route.ts
+// src\app\api\dietary-reqs\route.ts
 
 import { db } from "../../../../lib/drizzle";
-import { dietaryTags } from "../../../../drizzle/schema";
+import { dietaryReqs } from "../../../../drizzle/schema";
 import { ilike } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
-// GET all dietary tags
+// GET all dietary requirements
 export async function GET() {
   try {
-    const allTags = await db.select().from(dietaryTags).orderBy(dietaryTags.name);
-    return NextResponse.json(allTags, { status: 200 });
+    const allReqs = await db.select().from(dietaryReqs).orderBy(dietaryReqs.name);
+    return NextResponse.json(allReqs, { status: 200 });
   } catch (error) {
-    console.error("GET /api/dietary-tags error:", error);
+    console.error("GET /api/dietary-reqs error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch dietary tags" },
+      { error: "Failed to fetch dietary requirements" },
       { status: 500 }
     );
   }
@@ -34,8 +34,8 @@ export async function POST(req: Request) {
     // checks for duplicates before inserting
     const existing = await db
       .select()
-      .from(dietaryTags)
-      .where(ilike(dietaryTags.name, body.name.trim()))
+      .from(dietaryReqs)
+      .where(ilike(dietaryReqs.name, body.name.trim()))
       .limit(1);
     
     if (existing.length > 0) {
@@ -45,17 +45,17 @@ export async function POST(req: Request) {
       );
     }
     
-    const formattedName = body.name.trim().toLowerCase(); // lowercase for dietary tags
+    const formattedName = body.name.trim().toLowerCase(); // lowercase for dietary requirements
     
-    const [tag] = await db.insert(dietaryTags).values({
+    const [tag] = await db.insert(dietaryReqs).values({
       name: formattedName,
     }).returning();
     
     return NextResponse.json(tag, { status: 201 });
   } catch (error) {
-    console.error("POST /api/dietary-tags error:", error);
+    console.error("POST /api/dietary-reqs error:", error);
     return NextResponse.json(
-      { error: "Failed to create dietary tag" },
+      { error: "Failed to create dietary requirement" },
       { status: 500 }
     );
   }

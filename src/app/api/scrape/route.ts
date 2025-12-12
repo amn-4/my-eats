@@ -1,14 +1,14 @@
 // src\app\api\scrape\route.ts
 
 import { db } from "../../../../lib/drizzle";
-import { restaurants, restaurantDietaryTags, suburbs, cuisines, dietaryTags } from "../../../../drizzle/schema";
+import { restaurants, restaurantDietaryReqs, suburbs, cuisines, dietaryReqs } from "../../../../drizzle/schema";
 import { NextResponse } from "next/server";
-import { eq, ilike } from "drizzle-orm";
+import { ilike } from "drizzle-orm";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { url, name, suburb, cuisine, dietaryTags: tags } = body;
+    const { url, name, suburb, cuisine, dietaryReqs: reqs } = body;
     
     // validate required fields
     if (!url) {
@@ -68,23 +68,23 @@ export async function POST(req: Request) {
       }
     }
     
-    // handle dietary tags
-    let dietaryTagIds: string[] = [];
-    if (tags && tags.length > 0) {
-      for (const tag of tags) {
-        const trimmedTag = tag.trim();
-        const existingTag = await db
+    // handle dietary reqs
+    const dietaryReqIds: string[] = [];
+    if (reqs && reqs.length > 0) {
+      for (const req of reqs) {
+        const trimmedReq = req.trim();
+        const existingReq = await db
           .select()
-          .from(dietaryTags)
-          .where(ilike(dietaryTags.name, trimmedTag))
+          .from(dietaryReqs)
+          .where(ilike(dietaryReqs.name, trimmedReq))
           .limit(1);
         
-        if (existingTag.length > 0) {
-          dietaryTagIds.push(existingTag[0].id);
+        if (existingReq.length > 0) {
+          dietaryReqIds.push(existingReq[0].id);
         } else {
-          const formattedName = trimmedTag.toLowerCase();
-          const [newTag] = await db.insert(dietaryTags).values({ name: formattedName }).returning();
-          dietaryTagIds.push(newTag.id);
+          const formattedName = trimmedReq.toLowerCase();
+          const [newReq] = await db.insert(dietaryReqs).values({ name: formattedName }).returning();
+          dietaryReqIds.push(newReq.id);
         }
       }
     }
@@ -111,13 +111,13 @@ export async function POST(req: Request) {
       openingHours: googleData?.openingHours || {},
     }).returning();
     
-    // add dietary tags
-    if (dietaryTagIds.length > 0) {
-      const tagValues = dietaryTagIds.map((tagId: string) => ({
+    // add dietary reqs
+    if (dietaryReqIds.length > 0) {
+      const reqValues = dietaryReqIds.map((reqId: string) => ({
         restaurantId: restaurant.id,
-        dietaryTagId: tagId,
+        dietaryReqId: reqId,
       }));
-      await db.insert(restaurantDietaryTags).values(tagValues);
+      await db.insert(restaurantDietaryReqs).values(reqValues);
     }
     
     return NextResponse.json({
