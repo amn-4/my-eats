@@ -132,6 +132,7 @@ export async function GET(req: Request) {
     const cuisineId = searchParams.get("cuisineId");
     const dietaryTagId = searchParams.get("dietaryTagId");
     const search = searchParams.get("search"); // for searching by name
+    const openNow = searchParams.get("openNow");
     
     // build filter conditions array
     const conditions = [];
@@ -180,7 +181,7 @@ export async function GET(req: Request) {
     }
     
     // fetch dietary tags for each restaurant
-    const restaurantsWithTags = await Promise.all(
+    let restaurantsWithTags = await Promise.all(
       results.map(async (result) => {
         const tags = await db
           .select({ tag: dietaryTags })
@@ -196,6 +197,40 @@ export async function GET(req: Request) {
         };
       })
     );
+
+    // filter by "open now"
+    if (openNow === "true") {
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0 = sunday, 1 = monday, ..., 6 = saturday
+      const currentTime = now.getHours() * 100 + now.getMinutes(); // e.g., 1430 for 2:30pm
+      
+      restaurantsWithTags = restaurantsWithTags.filter(restaurant => {
+        // skip restaurants without opening hours data
+        const hours = restaurant.openingHours as any;
+        if (!hours || !hours.periods) {
+          return false;
+        }
+        
+        // find periods for today
+        const todaysPeriods = hours.periods.filter(
+          (period: any) => period.open.day === dayOfWeek
+        );
+        
+        // check if currently open
+        return todaysPeriods.some((period: any) => {
+          const openTime = parseInt(period.open.time);
+          const closeTime = period.close ? parseInt(period.close.time) : 2359;
+          
+          // handle closing time after midnight
+          if (closeTime < openTime) {
+            // e.g., opens at 2000 (8pm), closes at 0200 (2am next day)
+            return currentTime >= openTime || currentTime <= closeTime;
+          }
+          
+          return currentTime >= openTime && currentTime <= closeTime;
+        });
+      });
+    }
     
     return NextResponse.json(restaurantsWithTags, { status: 200 });
     
