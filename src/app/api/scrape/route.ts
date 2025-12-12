@@ -1,14 +1,14 @@
 // src\app\api\scrape\route.ts
 
 import { db } from "../../../../lib/drizzle";
-import { restaurants, restaurantDietaryReqs, suburbs, cuisines, dietaryReqs } from "../../../../drizzle/schema";
+import { restaurants, restaurantDietaryReqs, restaurantTags, suburbs, cuisines, dietaryReqs, tags } from "../../../../drizzle/schema";
 import { NextResponse } from "next/server";
 import { ilike } from "drizzle-orm";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { url, name, suburb, cuisine, dietaryReqs: reqs } = body;
+    const { url, name, suburb, cuisine, dietaryReqs: reqs, tags: tagNames } = body;
     
     // validate required fields
     if (!url) {
@@ -88,6 +88,27 @@ export async function POST(req: Request) {
         }
       }
     }
+
+    // handle tags
+    const tagIds: string[] = [];
+    if (tagNames && tagNames.length > 0) {
+      for (const tag of tagNames) {
+        const trimmedTag = tag.trim();
+        const existingTag = await db
+          .select()
+          .from(tags)
+          .where(ilike(tags.name, trimmedTag))
+          .limit(1);
+        
+        if (existingTag.length > 0) {
+          tagIds.push(existingTag[0].id);
+        } else {
+          const formattedName = trimmedTag.toLowerCase();
+          const [newTag] = await db.insert(tags).values({ name: formattedName }).returning();
+          tagIds.push(newTag.id);
+        }
+      }
+    }
     
     // fetch google places data
     let googleData = null;
@@ -118,6 +139,15 @@ export async function POST(req: Request) {
         dietaryReqId: reqId,
       }));
       await db.insert(restaurantDietaryReqs).values(reqValues);
+    }
+
+    // add tags
+    if (tagIds.length > 0) {
+      const tagValues = tagIds.map((tagId: string) => ({
+        restaurantId: restaurant.id,
+        tagId: tagId,
+      }));
+      await db.insert(restaurantTags).values(tagValues);
     }
     
     return NextResponse.json({
