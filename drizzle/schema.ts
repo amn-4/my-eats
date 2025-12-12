@@ -26,9 +26,18 @@ export const restaurants = pgTable("restaurants", {
   name: text().notNull(),
   suburbId: text().references(() => suburbs.id),
   cuisineId: text().references(() => cuisines.id),
+
+  // google places data
+  googlePlaceId: text(),
+  googleMapsUrl: text(),
+  address: text(),
+  phone: text(),
   openingHours: jsonb(),
+
+  // social media
   source: text(),
   url: text(),
+  
   createdAt: timestamp({ precision: 3, mode: "string" }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
