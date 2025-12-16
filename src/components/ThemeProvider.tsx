@@ -1,10 +1,11 @@
 // src\components\ThemeProvider.tsx
 
 "use client"
-import { createContext, useContext, useState, useEffect, ReactNode } from "react"
-import { ThemeProvider as MUIThemeProvider } from "@mui/material/styles"
-import CssBaseline from "@mui/material/CssBaseline"
-import { getTheme } from "@/app/theme/theme"
+
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { ThemeProvider as MUIThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import { getTheme } from "@/app/theme/theme";
 
 // define what data the context will hold
 type ThemeContextType = {

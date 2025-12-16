@@ -1,8 +1,10 @@
 // src\app\layout.tsx
 
 import { Inconsolata } from "next/font/google";
-import localFont from "next/font/local"
+import localFont from "next/font/local";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import Navbar from "@/components/Navbar";
+
 
 // heading font
 const inconsolata = Inconsolata({ 
@@ -46,6 +48,7 @@ export default function RootLayout({
     <html lang="en" className={`${inconsolata.variable} ${lineSeed.variable}`}>
       <body>
         <ThemeProvider>
+          <Navbar />
           {children}
         </ThemeProvider>
       </body>

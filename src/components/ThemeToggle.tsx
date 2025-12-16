@@ -2,9 +2,9 @@
 
 "use client"
 
-import { styled } from "@mui/material/styles"
-import Switch from "@mui/material/Switch"
-import { useTheme } from "@/components/ThemeProvider"
+import { styled } from "@mui/material/styles";
+import Switch from "@mui/material/Switch";
+import { useTheme } from "@/components/ThemeProvider";
 
 // MaterialUISwitch styled component from mui docs
     const MaterialUISwitch = styled(Switch)(({ theme }) => ({
