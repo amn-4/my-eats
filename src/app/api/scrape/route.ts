@@ -1,5 +1,8 @@
 // src\app\api\scrape\route.ts
 
+// note: "scrape" is a bit of a misnomer as this only accepts manual input, actual scraping of ig/tiktok would violate their ToS
+// it DOES auto-fetch restaurant details (address, opening hours, etc) from google places api though
+
 import { db } from "../../../../lib/drizzle";
 import { restaurants, restaurantDietaryReqs, restaurantTags, suburbs, cuisines, dietaryReqs, tags } from "../../../../drizzle/schema";
 import { NextResponse } from "next/server";
