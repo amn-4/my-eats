@@ -4,6 +4,7 @@ import { Inconsolata } from "next/font/google";
 import localFont from "next/font/local";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Navbar from "@/components/Navbar";
+import { InitColorSchemeScript } from "@mui/material";
 
 
 // heading font
@@ -45,8 +46,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inconsolata.variable} ${lineSeed.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${inconsolata.variable} ${lineSeed.variable}`}>
       <body>
+        <InitColorSchemeScript attribute="class" />
         <ThemeProvider>
           <Navbar />
           {children}

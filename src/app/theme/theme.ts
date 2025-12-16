@@ -2,12 +2,23 @@
 
 import { createTheme } from "@mui/material"
 
-export const getTheme = (mode: "light" | "dark") => {
-  return createTheme({
-    palette: {
-      mode,
+export const theme = createTheme({
+  cssVariables: {
+    colorSchemeSelector: "class"
+  },
+  colorSchemes: {
+    light: {
+      palette: {
+        // default light mode colours
+      },
     },
-    typography: {
+    dark: {
+      palette: {
+        // default dark mode colours
+      },
+    },
+  },
+  typography: {
       fontFamily: "var(--font-line-seed)",
       h1: { fontFamily: "var(--font-inconsolata)" },
       h2: { fontFamily: "var(--font-inconsolata)" },
@@ -16,5 +27,4 @@ export const getTheme = (mode: "light" | "dark") => {
       h5: { fontFamily: "var(--font-inconsolata)" },
       h6: { fontFamily: "var(--font-inconsolata)" },
     },
-  })
-}
+})

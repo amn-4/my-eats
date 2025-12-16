@@ -4,7 +4,7 @@
 
 import { styled } from "@mui/material/styles";
 import Switch from "@mui/material/Switch";
-import { useTheme } from "@/components/ThemeProvider";
+import { useColorScheme } from "@mui/material/styles";
 
 // MaterialUISwitch styled component from mui docs
     const MaterialUISwitch = styled(Switch)(({ theme }) => ({
@@ -64,12 +64,16 @@ import { useTheme } from "@/components/ThemeProvider";
     }))
 
 export default function ThemeToggle() {
-    const { mode, toggleTheme } = useTheme()
+    const { mode, setMode } = useColorScheme()
+
+    const handleToggle = () => {
+        setMode(mode === "light" ? "dark" : "light")
+    }
 
     return (
         <MaterialUISwitch 
             checked={mode === "dark"}
-            onChange={toggleTheme}
+            onChange={handleToggle}
         />
     )
 }
