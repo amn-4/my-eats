@@ -2,29 +2,11 @@
 
 "use client"
 
+import { Restaurant } from "@/types/restaurant";
 import { useState } from "react";
 import { Card, CardContent, Typography, Chip, Stack, Collapse  } from "@mui/material";
 import LocationPinIcon from "@mui/icons-material/LocationPin";
 import Link from "@mui/material/Link";
-
-// type definition for restaurant data structure from API
-type Restaurant = {
-  id: string
-  name: string
-  suburb: { id: string; name: string } | null
-  cuisine: { id: string; name: string } | null
-  dietaryReqs: Array<{ id: string; name: string }>
-  tags: Array<{ id: string; name: string }>
-  source: string | null
-  url: string | null
-  address: string | null
-  openingHours: {
-    weekdayText?: string[]
-    periods?: Array<{ open: { day: number; time: string } }>
-  } | null
-  googleMapsUrl: string | null
-  createdAt: string
-}
 
 export default function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
     // useState to track if card is expanded (true) or collapsed (false)
