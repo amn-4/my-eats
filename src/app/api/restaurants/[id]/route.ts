@@ -113,18 +113,34 @@ export async function PUT(
     if (body.source !== undefined) updates.source = body.source;
     if (body.openingHours !== undefined) updates.openingHours = body.openingHours;
     
-    // update database
-    const updated = await db
-      .update(restaurants)
-      .set(updates)
-      .where(eq(restaurants.id, id))
-      .returning();
+    // only update restaurant table if there are fields to update
+    let updated;
+    if (Object.keys(updates).length > 0) {
+      updated = await db
+        .update(restaurants)
+        .set(updates)
+        .where(eq(restaurants.id, id))
+        .returning();
+        
+      if (updated.length === 0) {
+        return NextResponse.json(
+          { error: "Restaurant not found" },
+          { status: 404 }
+        );
+      }
+    } else {
+      // if only updating tags/dietaryReqs, just fetch restaurant
+      updated = await db
+        .select()
+        .from(restaurants)
+        .where(eq(restaurants.id, id));
       
-    if (updated.length === 0) {
-      return NextResponse.json(
-        { error: "Restaurant not found" },
-        { status: 404 }
-      );
+      if (updated.length === 0) {
+        return NextResponse.json(
+          { error: "Restaurant not found" },
+          { status: 404 }
+        );
+      }
     }
 
     // handle dietary reqs if provided
