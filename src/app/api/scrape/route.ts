@@ -46,7 +46,15 @@ export async function POST(req: Request) {
       if (existingSuburb.length > 0) {
         suburbId = existingSuburb[0].id;
       } else {
-        const formattedName = trimmedSuburb.charAt(0).toUpperCase() + trimmedSuburb.slice(1).toLowerCase();
+        const formattedName = trimmedSuburb
+          .split(" ")
+          .map((word: string) => {
+            if (word === word.toUpperCase() && word.length > 1) {
+              return word;
+            }
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+          })
+          .join(" ");
         const [newSuburb] = await db.insert(suburbs).values({ name: formattedName }).returning();
         suburbId = newSuburb.id;
       }

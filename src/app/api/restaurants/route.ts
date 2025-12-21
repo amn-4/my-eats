@@ -40,7 +40,17 @@ export async function POST(req: Request) {
           suburbId = existingSuburb[0].id;
         } else {
           // create new suburb (store with proper capitalization)
-          const formattedName = trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase();
+          const formattedName = trimmedName
+            .split(" ")
+            .map((word: string) => {
+              // if word is all upper case (like CBD), keep it
+              if (word === word.toUpperCase() && word.length > 1) {
+                return word;
+              }
+              // otherwise, title case
+              return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            })
+            .join(" ");
           const [newSuburb] = await db.insert(suburbs).values({ name: formattedName }).returning();
           suburbId = newSuburb.id;
         }
