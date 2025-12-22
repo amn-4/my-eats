@@ -235,30 +235,46 @@ export async function GET(req: Request) {
       results = results.filter(r => ids.includes(r.restaurant.id));
     }
     
-    // fetch dietary reqs and tags for each restaurant
-    let restaurantsWithData = await Promise.all(
-      results.map(async (result) => {
-        const reqs = await db
-          .select({ req: dietaryReqs })
-          .from(restaurantDietaryReqs)
-          .leftJoin(dietaryReqs, eq(restaurantDietaryReqs.dietaryReqId, dietaryReqs.id))
-          .where(eq(restaurantDietaryReqs.restaurantId, result.restaurant.id));
-
-        const restaurantTagsData = await db
-          .select({ tag: tags })
-          .from(restaurantTags)
-          .leftJoin(tags, eq(restaurantTags.tagId, tags.id))
-          .where(eq(restaurantTags.restaurantId, result.restaurant.id));
-        
-        return {
-          ...result.restaurant,
-          suburb: result.suburb,
-          cuisine: result.cuisine,
-          dietaryReqs: reqs.map(t => t.req).filter(Boolean),
-          tags: restaurantTagsData.map(t => t.tag).filter(Boolean),
-        };
+    // fetch all dietary reqs for all restaurants
+    const allDietaryReqs = await db
+      .select({
+        restaurantId: restaurantDietaryReqs.restaurantId,
+        req: dietaryReqs
       })
-    );
+      .from(restaurantDietaryReqs)
+      .leftJoin(dietaryReqs, eq(restaurantDietaryReqs.dietaryReqId, dietaryReqs.id));
+
+    // fetch all tags for all restaurants
+    const allTags = await db
+      .select({
+        restaurantId: restaurantTags.restaurantId,
+        tag: tags
+      })
+      .from(restaurantTags)
+      .leftJoin(tags, eq(restaurantTags.tagId, tags.id));
+
+    // group dietary reqs by restaurant id
+    const dietaryReqsByRestaurant = allDietaryReqs.reduce((acc, item) => {
+      if (!acc[item.restaurantId]) acc[item.restaurantId] = [];
+      if (item.req) acc[item.restaurantId].push(item.req);
+      return acc;
+    }, {} as Record<string, typeof dietaryReqs.$inferSelect[]>);
+
+    // group tags by restaurant id
+    const tagsByRestaurant = allTags.reduce((acc, item) => {
+      if (!acc[item.restaurantId]) acc[item.restaurantId] = [];
+      if (item.tag) acc[item.restaurantId].push(item.tag);
+      return acc;
+    }, {} as Record<string, typeof tags.$inferSelect[]>);
+
+    // combine everything
+    let restaurantsWithData = results.map((result) => ({
+      ...result.restaurant,
+      suburb: result.suburb,
+      cuisine: result.cuisine,
+      dietaryReqs: dietaryReqsByRestaurant[result.restaurant.id] || [],
+      tags: tagsByRestaurant[result.restaurant.id] || [],
+    }));
 
     // filter by "open now"
     if (openNow === "true") {
