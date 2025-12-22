@@ -39,18 +39,9 @@ export default function HomePage() {
       .then(res => res.json())
       .then(data => {
         setRestaurants(data)
+        setLoading(false)
       })
   }, [activeFilters]) // re-run whenever active filter changes
-
-  // build query string from active filters
-  const params = new URLSearchParams()
-  if (activeFilters.suburbId) params.append("suburbId", activeFilters.suburbId)
-  if (activeFilters.cuisineId) params.append("cuisineId", activeFilters.cuisineId)
-  if (activeFilters.dietaryReqId) params.append("dietaryReqId", activeFilters.dietaryReqId)
-  if (activeFilters.tagId) params.append("tagId", activeFilters.tagId)
-  if (activeFilters.openNow) params.append("openNow", "true")
-
-  fetch(`/api/restaurants?${params.toString()}`)
   
   return (
     <Container sx={{ py: 4 }}>
