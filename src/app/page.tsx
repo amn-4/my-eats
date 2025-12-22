@@ -6,23 +6,51 @@ import { Restaurant } from "@/types/restaurant"
 import { useEffect, useState } from "react";
 import { Container, Typography, Grid } from "@mui/material";
 import RestaurantCard from "@/components/RestaurantCard";
+import FilterBar from "@/components/FilterBar";
 
 export default function HomePage() {
   // state to store array of restaurants fetched from API
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
 
+  // state for active filter values
+  const [activeFilters, setActiveFilters] = useState({
+    suburbId: "",
+    cuisineId: "",
+    dietaryReqId: "",
+    tagId: "",
+    openNow: false
+  })
+
   // state for loading status
   const [loading, setLoading] = useState(true)
 
+  // fetch restaurants whenever active filters change
   useEffect(() => {
-    // fetch data from API endpoint
-    fetch("/api/restaurants")
-      .then(res => res.json()) // convert response to json
-      .then(data => { // when json is ready
-        setRestaurants(data) // store restaurants in state
-        setLoading(false) // // hide loading indicator
+    // build query string from active filters
+    const params = new URLSearchParams()
+    if (activeFilters.suburbId) params.append("suburbId", activeFilters.suburbId)
+    if (activeFilters.cuisineId) params.append("cuisineId", activeFilters.cuisineId)
+    if (activeFilters.dietaryReqId) params.append("dietaryReqId", activeFilters.dietaryReqId)
+    if (activeFilters.tagId) params.append("tagId", activeFilters.tagId)
+    if (activeFilters.openNow) params.append("openNow", "true")
+    
+      // fetch restaurants with filter parameters in url
+    fetch(`/api/restaurants?${params.toString()}`)
+      .then(res => res.json())
+      .then(data => {
+        setRestaurants(data)
       })
-  }, []) // empty array means it only runs once when page loads
+  }, [activeFilters]) // re-run whenever active filter changes
+
+  // build query string from active filters
+  const params = new URLSearchParams()
+  if (activeFilters.suburbId) params.append("suburbId", activeFilters.suburbId)
+  if (activeFilters.cuisineId) params.append("cuisineId", activeFilters.cuisineId)
+  if (activeFilters.dietaryReqId) params.append("dietaryReqId", activeFilters.dietaryReqId)
+  if (activeFilters.tagId) params.append("tagId", activeFilters.tagId)
+  if (activeFilters.openNow) params.append("openNow", "true")
+
+  fetch(`/api/restaurants?${params.toString()}`)
   
   return (
     <Container sx={{ py: 4 }}>
@@ -30,6 +58,8 @@ export default function HomePage() {
       <Typography variant="h3" align="center" sx={{ mb: 4 }}>
         Restaurants
       </Typography>
+
+      <FilterBar onFiltersChange={setActiveFilters} />
 
       {/* show loading text while fetching */}
       {loading && <Typography>Loading...</Typography>}
