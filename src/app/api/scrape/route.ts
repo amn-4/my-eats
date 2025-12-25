@@ -14,13 +14,6 @@ export async function POST(req: Request) {
     const { url, name, suburb, cuisine, dietaryReqs: reqs, tags: tagNames } = body;
     
     // validate required fields
-    if (!url) {
-      return NextResponse.json(
-        { error: "URL is required" },
-        { status: 400 }
-      );
-    }
-    
     if (!name) {
       return NextResponse.json(
         { error: "Restaurant name is required" },
