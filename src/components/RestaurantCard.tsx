@@ -27,8 +27,10 @@ import Link from "@mui/material/Link";
 
 export default function RestaurantCard({
   restaurant,
+	onDeleted,
 }: {
   restaurant: Restaurant;
+	onDeleted: (id: string) => void;
 }) {
   // useState to track if card is expanded (true) or collapsed (false)
   const [expanded, setExpanded] = useState(false);
@@ -50,11 +52,9 @@ export default function RestaurantCard({
 			})
 			
 			if (response.ok) {
-				// close dialog and reload page to show updated list
-				setDeleteDialogOpen(false)
+				setDeleteDialogOpen(false) // close dialog
+				onDeleted(restaurant.id) // notify parent to remove from list
 				alert("Restaurant deleted!")
-				// Refresh page to show updated list
-				window.location.reload()
 			} else {
 				alert("Failed to delete restaurant")
 			}
@@ -216,7 +216,7 @@ export default function RestaurantCard({
 			</Card>
 			{/* delete confirmation dialog */}
 			<Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-				<DialogTitle>Delete Restaurant?</DialogTitle>
+				<DialogTitle>Delete Restaurant</DialogTitle>
 				<DialogContent>
 					<DialogContentText>
 						Are you sure you want to delete {restaurant.name}?

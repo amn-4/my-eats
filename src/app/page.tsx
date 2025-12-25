@@ -42,6 +42,11 @@ export default function HomePage() {
         setLoading(false)
       })
   }, [activeFilters]) // re-run whenever active filter changes
+
+  // handle restaurant deletion - remove from list without reloading page
+  const handleRestaurantDeleted = (id: string) => {
+    setRestaurants(prev => prev.filter(r => r.id !== id))
+  }
   
   return (
     <Container sx={{ py: 4 }}>
@@ -59,7 +64,7 @@ export default function HomePage() {
       <Grid container spacing={2}>
         {restaurants.map(restaurant => (
           <Grid key={restaurant.id} size={{ xs: 12, md: 6, lg: 4 }}>
-            <RestaurantCard restaurant={restaurant} />
+            <RestaurantCard restaurant={restaurant} onDeleted={handleRestaurantDeleted} />
           </Grid>
         ))}
       </Grid>
