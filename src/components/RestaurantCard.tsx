@@ -113,20 +113,22 @@ export default function RestaurantCard({
 				{/* main card content. clickable to expand/collapse */}
 				<CardContent>
 					{/* restaurant name */}
-					<Typography variant="h5" sx={{ color: "text.primary" }}>
-						{restaurant.name}
-					</Typography>
+					<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+						<Typography variant="h5" sx={{ color: "text.primary" }}>
+							{restaurant.name}
+						</Typography>
 
-					{/* edit button */}
-						<IconButton
-							size="small"
-							onClick={(e) => {
-								e.stopPropagation(); // prevent card expand/collapse
-								setEditDialogOpen(true) // open edit dialog
-							}}
-						>
-							<Edit fontSize="small" />
-						</IconButton>
+						{/* edit button */}
+							<IconButton
+								size="small"
+								onClick={(e) => {
+									e.stopPropagation(); // prevent card expand/collapse
+									setEditDialogOpen(true) // open edit dialog
+								}}
+							>
+								<Edit fontSize="small" />
+							</IconButton>
+						</Box>
 
 					{/* suburb and cuisine. optional chaining (?.) handles null values */}
 					<Typography variant="body2" color="text.secondary">
