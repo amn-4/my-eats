@@ -1,8 +1,16 @@
 // src\app\api\restaurants\[id]\route.ts
 
 import { db } from "../../../../../lib/drizzle";
-import { restaurants, restaurantDietaryReqs, restaurantTags, suburbs, cuisines, dietaryReqs, tags } from "../../../../../drizzle/schema";
-import { eq } from "drizzle-orm";
+import {
+  restaurants, 
+  restaurantDietaryReqs, 
+  restaurantTags, 
+  suburbs, 
+  cuisines, 
+  dietaryReqs, 
+  tags 
+} from "../../../../../drizzle/schema";
+import { eq, ilike } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 // -------------------------
@@ -106,9 +114,64 @@ export async function PUT(
     // checks name of restaurant
     if (body.name !== undefined) // is name in the request?
         updates.name = body.name; // if so, add it: updates = { name: "example name" } & if not, skip line
-    // etc
-    if (body.suburbId !== undefined) updates.suburbId = body.suburbId;
-    if (body.cuisineId !== undefined) updates.cuisineId = body.cuisineId;
+
+    // handle suburb (convert name to id if needed)
+    if (body.suburbId !== undefined) {
+      let suburbId = body.suburbId
+      
+      // if it doesn't look like uuid, treat it as a name
+      if (suburbId && !suburbId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        const trimmedName = suburbId.trim()
+        
+        // check if suburb exists
+        const existingSuburb = await db
+          .select()
+          .from(suburbs)
+          .where(ilike(suburbs.name, suburbId))
+          .limit(1)
+        
+        if (existingSuburb.length > 0) {
+          suburbId = existingSuburb[0].id
+        } else {
+          // create new suburb with proper capitalization
+          const formattedName = trimmedName
+            .split(" ")
+            .map((word: string) => {
+              if (word === word.toUpperCase() && word.length > 1) {
+                return word
+              }
+              return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            })
+            .join(" ")
+          const [newSuburb] = await db.insert(suburbs).values({ name: formattedName }).returning()
+          suburbId = newSuburb.id
+        }
+      }
+      
+      updates.suburbId = suburbId
+    }
+
+    // handle cuisine (convert name to id if needed)
+    if (body.cuisineId !== undefined) {
+      let cuisineId = body.cuisineId
+      
+      if (cuisineId && !cuisineId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        const existingCuisine = await db
+          .select()
+          .from(cuisines)
+          .where(eq(cuisines.name, cuisineId))
+          .limit(1)
+        
+        if (existingCuisine.length > 0) {
+          cuisineId = existingCuisine[0].id
+        } else {
+          const [newCuisine] = await db.insert(cuisines).values({ name: cuisineId }).returning()
+          cuisineId = newCuisine.id
+        }
+      }
+      
+      updates.cuisineId = cuisineId
+    }
     if (body.url !== undefined) updates.url = body.url;
     if (body.source !== undefined) updates.source = body.source;
     if (body.openingHours !== undefined) updates.openingHours = body.openingHours;
@@ -143,6 +206,54 @@ export async function PUT(
       }
     }
 
+    // handle dietary reqs
+    const dietaryReqIds: string[] = [];
+    if (body.dietaryReqIds && body.dietaryReqIds.length > 0) {
+      for (const reqInput of body.dietaryReqIds) {
+        // check if it's uuid or name
+        if (reqInput.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+          dietaryReqIds.push(reqInput);
+        } else {
+          // it's a name, find or create
+          const existingReq = await db
+            .select()
+            .from(dietaryReqs)
+            .where(eq(dietaryReqs.name, reqInput))
+            .limit(1);
+          
+          if (existingReq.length > 0) {
+            dietaryReqIds.push(existingReq[0].id);
+          } else {
+            const [newReq] = await db.insert(dietaryReqs).values({ name: reqInput }).returning();
+            dietaryReqIds.push(newReq.id);
+          }
+        }
+      }
+    }
+
+    // handle tags (convert names to IDs)
+    const tagIds: string[] = [];
+    if (body.tagIds && body.tagIds.length > 0) {
+      for (const tagInput of body.tagIds) {
+        if (tagInput.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+          tagIds.push(tagInput);
+        } else {
+          const existingTag = await db
+            .select()
+            .from(tags)
+            .where(eq(tags.name, tagInput))
+            .limit(1);
+          
+          if (existingTag.length > 0) {
+            tagIds.push(existingTag[0].id);
+          } else {
+            const [newTag] = await db.insert(tags).values({ name: tagInput }).returning();
+            tagIds.push(newTag.id);
+          }
+        }
+      }
+    }
+
     // handle dietary reqs if provided
     if (body.dietaryReqIds !== undefined) {
       // delete existing reqs
@@ -151,8 +262,8 @@ export async function PUT(
         .where(eq(restaurantDietaryReqs.restaurantId, id));
       
       // insert new reqs
-      if (body.dietaryReqIds.length > 0) {
-        const reqValues = body.dietaryReqIds.map((reqId: string) => ({
+      if (dietaryReqIds.length > 0) {
+        const reqValues = dietaryReqIds.map((reqId: string) => ({
           restaurantId: id,
           dietaryReqId: reqId,
         }));
@@ -169,8 +280,8 @@ export async function PUT(
         .where(eq(restaurantTags.restaurantId, id));
       
       // insert new tags
-      if (body.tagIds.length > 0) {
-        const tagValues = body.tagIds.map((tagId: string) => ({
+      if (tagIds.length > 0) {
+        const tagValues = tagIds.map((tagId: string) => ({
           restaurantId: id,
           tagId: tagId,
         }));
