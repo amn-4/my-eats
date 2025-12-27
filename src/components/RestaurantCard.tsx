@@ -24,6 +24,7 @@ import { ExpandMore } from "@mui/icons-material";
 import { Edit } from "@mui/icons-material";
 import { LocationPin } from "@mui/icons-material";
 import Link from "@mui/material/Link";
+import RestaurantForm, { RestaurantFormData } from "./RestaurantForm";
 
 export default function RestaurantCard({
   restaurant,
@@ -40,6 +41,16 @@ export default function RestaurantCard({
 
 	// state for edit dialog visibility
 	const [editDialogOpen, setEditDialogOpen] = useState(false)
+
+	// state for edit form data
+	const [editFormData, setEditFormData] = useState<RestaurantFormData>({
+		name: restaurant.name,
+		url: restaurant.url || "",
+		suburb: restaurant.suburb?.name || null,
+		cuisine: restaurant.cuisine?.name || null,
+		dietaryReqs: restaurant.dietaryReqs.map(r => r.name),
+		tags: restaurant.tags.map(t => t.name),
+	})
 
   // toggle function: flips expanded state (true -> false or false -> true)
   const handleExpandClick = () => setExpanded(!expanded);
@@ -61,6 +72,38 @@ export default function RestaurantCard({
 		} catch (error) {
 			console.error(error)
 			alert("Error deleting restaurant")
+		}
+	}
+
+	// handle restaurant edit
+	const handleEdit = async () => {
+		try {
+			// transform form data to match backend API format
+			const payload = {
+				name: editFormData.name,
+				url: editFormData.url,
+				suburbId: editFormData.suburb,  // backend expects "suburbId" not "suburb"
+				cuisineId: editFormData.cuisine, // etc
+				dietaryReqIds: editFormData.dietaryReqs,
+				tagIds: editFormData.tags,
+			}
+			
+			const response = await fetch(`/api/restaurants/${restaurant.id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+			})
+			
+			if (response.ok) {
+				setEditDialogOpen(false) // close dialog
+				alert("Restaurant updated!")
+				window.location.reload() // reload to show changes
+			} else {
+				alert("Failed to update restaurant")
+			}
+		} catch (error) {
+			console.error(error)
+			alert("Error updating restaurant")
 		}
 	}
 
@@ -239,12 +282,12 @@ export default function RestaurantCard({
 			>
 				<DialogTitle>Edit Restaurant</DialogTitle>
 				<DialogContent>
-					{/* form goes here */}
-					<Typography>Edit form will go here</Typography>
+					{/* form component with initial data */}
+					<RestaurantForm initialData={editFormData} onChange={setEditFormData} />
 				</DialogContent>
 				<DialogActions>
 					<Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-					<Button variant="contained">Save</Button>
+					<Button variant="contained" onClick={handleEdit}>Save</Button>
 				</DialogActions>
 			</Dialog>
 		</>
