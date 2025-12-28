@@ -18,7 +18,8 @@ export default function HomePage() {
     cuisineIds: [] as string[],
     dietaryReqIds: [] as string[],
     tagIds: [] as string[],
-    openNow: false
+    openNow: false,
+    search: "",
   })
 
   // state for loading status
@@ -33,6 +34,7 @@ export default function HomePage() {
     activeFilters.dietaryReqIds.forEach(id => params.append("dietaryReqId", id))
     activeFilters.tagIds.forEach(id => params.append("tagId", id))
     if (activeFilters.openNow) params.append("openNow", "true")
+    if (activeFilters.search) params.append("search", activeFilters.search)
     
       // fetch restaurants with filter parameters in url
     fetch(`/api/restaurants?${params.toString()}`)

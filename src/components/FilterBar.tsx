@@ -43,6 +43,7 @@ type FilterValues = {
   dietaryReqIds: string[];
   tagIds: string[];
   openNow: boolean;
+	search: string;
 };
 
 export default function FilterBar({
@@ -65,6 +66,9 @@ export default function FilterBar({
 	const [selectedDietaryReqs, setSelectedDietaryReqs] = useState<(DietaryReq | string)[]>([])
 	const [selectedTags, setSelectedTags] = useState<(Tag | string)[]>([])
 	const [openNow, setOpenNow] = useState(false)
+
+	// state for searching restaurants
+	const [searchQuery, setSearchQuery] = useState("")
 
   // fetch filter options from api when component loads
   useEffect(() => {
@@ -94,12 +98,22 @@ export default function FilterBar({
 			dietaryReqIds: selectedDietaryReqs.map(item => typeof item === "string" ? item : item.id),
 			tagIds: selectedTags.map(item => typeof item === "string" ? item : item.id),
 			openNow: openNow,
+			search: searchQuery,
 		})
-	}, [selectedSuburbs, selectedCuisines, selectedDietaryReqs, selectedTags, openNow, onFiltersChange])
+	}, [selectedSuburbs, selectedCuisines, selectedDietaryReqs, selectedTags, openNow, searchQuery, onFiltersChange])
 
 	// helper function to render filter controls (used in both desktop and mobile)
 	const renderFilters = () => (
 		<>
+			{/* search by name */}
+			<TextField
+				label="Search by name"
+				value={searchQuery}
+				onChange={(e) => setSearchQuery(e.target.value)}
+				sx={{ minWidth: 200 }}
+				placeholder="Restaurant name..."
+			/>
+
 			{/* suburb filter - multi-select */}
 			<Autocomplete
 				multiple
