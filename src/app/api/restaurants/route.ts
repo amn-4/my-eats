@@ -3,7 +3,7 @@
 import { db } from "../../../../lib/drizzle";
 import { restaurants, restaurantDietaryReqs, restaurantTags, suburbs, cuisines, dietaryReqs, tags } from "../../../../drizzle/schema";
 import { NextResponse } from "next/server";
-import { eq, and, ilike } from "drizzle-orm";
+import { eq, and, ilike, inArray } from "drizzle-orm";
 
 // ----------------------
 // POST /api/restaurants
@@ -171,22 +171,24 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     
     // extract query parameters
-    const suburbId = searchParams.get("suburbId");
-    const cuisineId = searchParams.get("cuisineId");
-    const dietaryReqId = searchParams.get("dietaryReqId");
-    const tagId = searchParams.get("tagId");
+    const suburbIds = searchParams.getAll("suburbId");
+    const cuisineIds = searchParams.getAll("cuisineId");
+    const dietaryReqIds = searchParams.getAll("dietaryReqId");
+    const tagIds = searchParams.getAll("tagId");
     const search = searchParams.get("search"); // for searching by name
     const openNow = searchParams.get("openNow");
     
     // build filter conditions array
     const conditions = [];
     
-    if (suburbId) {
-      conditions.push(eq(restaurants.suburbId, suburbId));
+    // handle multiple suburbs (OR condition)
+    if (suburbIds.length > 0) {
+      conditions.push(inArray(restaurants.suburbId, suburbIds));
     }
-    
-    if (cuisineId) {
-      conditions.push(eq(restaurants.cuisineId, cuisineId));
+
+    // handle multiple cuisines (OR condition)
+    if (cuisineIds.length > 0) {
+      conditions.push(inArray(restaurants.cuisineId, cuisineIds));
     }
     
     if (search) {
@@ -214,22 +216,22 @@ export async function GET(req: Request) {
     let results = await query;
     
     // filter by dietary req if specified
-    if (dietaryReqId) {
+    if (dietaryReqIds.length > 0) {
       const restaurantIds = await db
         .select({ restaurantId: restaurantDietaryReqs.restaurantId })
         .from(restaurantDietaryReqs)
-        .where(eq(restaurantDietaryReqs.dietaryReqId, dietaryReqId));
+        .where(inArray(restaurantDietaryReqs.dietaryReqId, dietaryReqIds));
       
       const ids = restaurantIds.map(r => r.restaurantId);
       results = results.filter(r => ids.includes(r.restaurant.id));
     }
 
     // filter by tag if specified
-    if (tagId) {
+    if (tagIds.length > 0) {
       const restaurantIds = await db
         .select({ restaurantId: restaurantTags.restaurantId })
         .from(restaurantTags)
-        .where(eq(restaurantTags.tagId, tagId));
+        .where(inArray(restaurantTags.tagId, tagIds));
       
       const ids = restaurantIds.map(r => r.restaurantId);
       results = results.filter(r => ids.includes(r.restaurant.id));

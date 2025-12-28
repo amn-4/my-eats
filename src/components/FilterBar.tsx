@@ -6,15 +6,13 @@ import { useState, useEffect } from "react";
 import {
   Stack,
   Box,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Switch,
   FormControlLabel,
   Button,
   Drawer,
-	Typography
+	Typography,
+	Autocomplete,
+	TextField
 } from "@mui/material";
 import { FilterAlt } from "@mui/icons-material";
 
@@ -40,10 +38,10 @@ type Tag = {
 };
 
 type FilterValues = {
-  suburbId: string;
-  cuisineId: string;
-  dietaryReqId: string;
-  tagId: string;
+  suburbIds: string[];
+  cuisineIds: string[];
+  dietaryReqIds: string[];
+  tagIds: string[];
   openNow: boolean;
 };
 
@@ -61,13 +59,12 @@ export default function FilterBar({
   // state for mobile drawer visibility
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // state for selected filter values (what user chooses from dropdowns)
-  // empty string means "all" (no filter applied)
-  const [selectedSuburb, setSelectedSuburb] = useState("");
-  const [selectedCuisine, setSelectedCuisine] = useState("");
-  const [selectedDietary, setSelectedDietary] = useState("");
-  const [selectedTag, setSelectedTag] = useState("");
-  const [openNow, setOpenNow] = useState(false);
+  // state for selected filters (arrays for multi-select)
+	const [selectedSuburbs, setSelectedSuburbs] = useState<(Suburb | string)[]>([])
+	const [selectedCuisines, setSelectedCuisines] = useState<(Cuisine | string)[]>([])
+	const [selectedDietaryReqs, setSelectedDietaryReqs] = useState<(DietaryReq | string)[]>([])
+	const [selectedTags, setSelectedTags] = useState<(Tag | string)[]>([])
+	const [openNow, setOpenNow] = useState(false)
 
   // fetch filter options from api when component loads
   useEffect(() => {
@@ -90,90 +87,68 @@ export default function FilterBar({
   }, []);
 
   // notify parent component whenever any filter changes
-  useEffect(() => {
-    onFiltersChange({
-      suburbId: selectedSuburb,
-      cuisineId: selectedCuisine,
-      dietaryReqId: selectedDietary,
-      tagId: selectedTag,
-      openNow: openNow,
-    });
-  }, [
-    selectedSuburb,
-    selectedCuisine,
-    selectedDietary,
-    selectedTag,
-    openNow,
-    onFiltersChange,
-  ]);
+	useEffect(() => {
+		onFiltersChange({
+			suburbIds: selectedSuburbs.map(item => typeof item === "string" ? item : item.id),
+			cuisineIds: selectedCuisines.map(item => typeof item === "string" ? item : item.id),
+			dietaryReqIds: selectedDietaryReqs.map(item => typeof item === "string" ? item : item.id),
+			tagIds: selectedTags.map(item => typeof item === "string" ? item : item.id),
+			openNow: openNow,
+		})
+	}, [selectedSuburbs, selectedCuisines, selectedDietaryReqs, selectedTags, openNow, onFiltersChange])
 
 	// helper function to render filter controls (used in both desktop and mobile)
 	const renderFilters = () => (
 		<>
-			<FormControl sx={{ minWidth: 200 }}>
-				<InputLabel>Suburb</InputLabel>
-				<Select
-					value={selectedSuburb}
-					label="Suburb"
-					onChange={(e) => setSelectedSuburb(e.target.value)}
-				>
-					<MenuItem value="">All suburbs</MenuItem>
-					{suburbs.map((suburb) => (
-						<MenuItem key={suburb.id} value={suburb.id}>
-							{suburb.name}
-						</MenuItem>
-					))}
-				</Select>
-			</FormControl>
-
-			<FormControl sx={{ minWidth: 200 }}>
-				<InputLabel>Cuisine</InputLabel>
-				<Select
-					value={selectedCuisine}
-					label="Cuisine"
-					onChange={(e) => setSelectedCuisine(e.target.value)}
-				>
-					<MenuItem value="">All cuisines</MenuItem>
-					{cuisines.map((cuisine) => (
-						<MenuItem key={cuisine.id} value={cuisine.id}>
-							{cuisine.name}
-						</MenuItem>
-					))}
-				</Select>
-			</FormControl>
-
-			<FormControl sx={{ minWidth: 200 }}>
-				<InputLabel>Dietary Requirements</InputLabel>
-				<Select
-					value={selectedDietary}
-					label="Dietary requirement"
-					onChange={(e) => setSelectedDietary(e.target.value)}
-				>
-					<MenuItem value="">All dietary requirements</MenuItem>
-					{dietaryReqs.map((req) => (
-						<MenuItem key={req.id} value={req.id}>
-							{req.name}
-						</MenuItem>
-					))}
-				</Select>
-			</FormControl>
-
-			<FormControl sx={{ minWidth: 200 }}>
-				<InputLabel>Tags</InputLabel>
-				<Select
-					value={selectedTag}
-					label="Tag"
-					onChange={(e) => setSelectedTag(e.target.value)}
-				>
-					<MenuItem value="">All tags</MenuItem>
-					{tags.map((tag) => (
-						<MenuItem key={tag.id} value={tag.id}>
-							{tag.name}
-						</MenuItem>
-					))}
-				</Select>
-			</FormControl>
-
+			{/* suburb filter - multi-select */}
+			<Autocomplete
+				multiple
+				freeSolo
+				options={suburbs}
+				getOptionLabel={(option) => typeof option === "string" ? option : option.name}
+				value={selectedSuburbs}
+				onChange={(e, value) => setSelectedSuburbs(value)}
+				renderInput={(params) => <TextField {...params} label="Suburbs" />}
+				sx={{ minWidth: 200 }}
+			/>
+			
+			{/* cuisine filter - multi-select */}
+			<Autocomplete
+				multiple
+				freeSolo
+				options={cuisines}
+				getOptionLabel={(option) => typeof option === "string" ? option : option.name}
+				value={selectedCuisines}
+				onChange={(e, value) => setSelectedCuisines(value)}
+				renderInput={(params) => <TextField {...params} label="Cuisines" />}
+				sx={{ minWidth: 200 }}
+			/>
+			
+			{/* dietary reqs filter - multi-select */}
+			<Autocomplete
+				multiple
+				freeSolo
+				options={dietaryReqs}
+				getOptionLabel={(option) => typeof option === "string" ? option : option.name}
+				value={selectedDietaryReqs}
+				onChange={(e, value) => setSelectedDietaryReqs(value)}
+				renderInput={(params) => <TextField {...params} label="Dietary Requirements" />}
+				sx={{ minWidth: 200 }}
+			/>
+			
+			{/* tags filter - multi-select */}
+			<Autocomplete
+				multiple
+				freeSolo
+				options={tags}
+				getOptionLabel={(option) => typeof option === "string" ? option : option.name}
+				value={selectedTags}
+				onChange={(e, value) => setSelectedTags(value)}
+				renderInput={(params) => <TextField {...params} label="Tags" />}
+				sx={{ minWidth: 200 }}
+			/>
+			
+			{/* "open now" switch */}
 			<FormControlLabel
 				control={
 					<Switch

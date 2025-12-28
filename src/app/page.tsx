@@ -14,10 +14,10 @@ export default function HomePage() {
 
   // state for active filter values
   const [activeFilters, setActiveFilters] = useState({
-    suburbId: "",
-    cuisineId: "",
-    dietaryReqId: "",
-    tagId: "",
+    suburbIds: [] as string[],
+    cuisineIds: [] as string[],
+    dietaryReqIds: [] as string[],
+    tagIds: [] as string[],
     openNow: false
   })
 
@@ -28,10 +28,10 @@ export default function HomePage() {
   useEffect(() => {
     // build query string from active filters
     const params = new URLSearchParams()
-    if (activeFilters.suburbId) params.append("suburbId", activeFilters.suburbId)
-    if (activeFilters.cuisineId) params.append("cuisineId", activeFilters.cuisineId)
-    if (activeFilters.dietaryReqId) params.append("dietaryReqId", activeFilters.dietaryReqId)
-    if (activeFilters.tagId) params.append("tagId", activeFilters.tagId)
+    activeFilters.suburbIds.forEach(id => params.append("suburbId", id))
+    activeFilters.cuisineIds.forEach(id => params.append("cuisineId", id))
+    activeFilters.dietaryReqIds.forEach(id => params.append("dietaryReqId", id))
+    activeFilters.tagIds.forEach(id => params.append("tagId", id))
     if (activeFilters.openNow) params.append("openNow", "true")
     
       // fetch restaurants with filter parameters in url
