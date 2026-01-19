@@ -4,11 +4,9 @@
 
 import { useState } from "react";
 import { Container, Typography, Button, Stack } from "@mui/material";
-import { useRouter } from "next/navigation";
 import RestaurantForm, { RestaurantFormData } from "@/components/RestaurantForm";
 
 export default function AddRestaurantPage() {
-  const router = useRouter()
   
   // state for form data (updated by RestaurantForm component)
   const [formData, setFormData] = useState<RestaurantFormData>({
@@ -22,6 +20,8 @@ export default function AddRestaurantPage() {
   
   // state for form submission
   const [submitting, setSubmitting] = useState(false)
+
+  const [resetCounter, setResetCounter] = useState(0)
   
   // handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,8 +36,18 @@ export default function AddRestaurantPage() {
       })
       
       if (response.ok) {
-        // if success, redirect to home page
-        router.push("/")
+        // if success, reset form and show message
+        setFormData({
+          name: "",
+          url: "",
+          suburb: null,
+          cuisine: null,
+          dietaryReqs: [],
+          tags: [],
+        })
+        setResetCounter(prev => prev + 1)
+        setSubmitting(false)
+        alert("Restaurant added successfully!")
       } else {
         alert("Failed to add restaurant")
         setSubmitting(false)
@@ -57,7 +67,11 @@ export default function AddRestaurantPage() {
       
       <Stack component="form" onSubmit={handleSubmit} spacing={3}>
         {/* reusable form component */}
-        <RestaurantForm onChange={setFormData} />
+        <RestaurantForm 
+          initialData={formData}
+          onChange={setFormData} 
+          key={resetCounter}
+        />
         
         {/* submit button */}
         <Button 

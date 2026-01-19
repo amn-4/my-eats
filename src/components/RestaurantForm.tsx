@@ -53,14 +53,15 @@ export default function RestaurantForm({ initialData, onChange }: RestaurantForm
   
   // notify parent whenever form values change
   useEffect(() => {
-    onChange({
+    const formData = {
       name,
       url,
       suburb: typeof selectedSuburb === "string" ? selectedSuburb : selectedSuburb?.name || null,
       cuisine: typeof selectedCuisine === "string" ? selectedCuisine : selectedCuisine?.name || null,
       dietaryReqs: selectedDietaryReqs.map(item => typeof item === "string" ? item : item.name),
       tags: selectedTags.map(item => typeof item === "string" ? item : item.name),
-    })
+    }
+    onChange(formData)
   }, [name, url, selectedSuburb, selectedCuisine, selectedDietaryReqs, selectedTags, onChange])
   
   return (

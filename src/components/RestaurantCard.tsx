@@ -138,11 +138,11 @@ export default function RestaurantCard({
 					{/* dietary reqs */}
 					{restaurant.tags.length > 0 ? (
 						// if restaurant has tags, dietary reqs without expandable button to the right
-						<Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+						<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 2 }}>
 							{restaurant.dietaryReqs.map((req) => (
 								<Chip key={req.id} label={req.name} />
 							))}
-						</Stack>
+						</Box>
 					) : (
 						// if no tags, dietary reqs with button on right
 						<Stack
