@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Navbar from "@/components/Navbar";
 import { InitColorSchemeScript } from "@mui/material";
+import { ClerkProvider } from "@clerk/nextjs";
 
 
 // heading font
@@ -51,14 +52,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inconsolata.variable} ${lineSeed.variable}`}>
-      <body>
-        <InitColorSchemeScript attribute="class" />
-        <ThemeProvider>
-          <Navbar />
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning className={`${inconsolata.variable} ${lineSeed.variable}`}>
+        <body>
+          <InitColorSchemeScript attribute="class" />
+          <ThemeProvider>
+            <Navbar />
+            {children}
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

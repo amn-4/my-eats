@@ -29,6 +29,7 @@ export const tags = pgTable("tags", {
 
 export const restaurants = pgTable("restaurants", {
   id: text().primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  userId: text().notNull(),
   name: text().notNull(),
   suburbId: text().references(() => suburbs.id),
   cuisineId: text().references(() => cuisines.id),

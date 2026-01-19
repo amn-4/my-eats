@@ -7,9 +7,19 @@ import { db } from "../../../../lib/drizzle";
 import { restaurants, restaurantDietaryReqs, restaurantTags, suburbs, cuisines, dietaryReqs, tags } from "../../../../drizzle/schema";
 import { NextResponse } from "next/server";
 import { ilike } from "drizzle-orm";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
   try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const { url, name, suburb, cuisine, dietaryReqs: reqs, tags: tagNames } = body;
     
@@ -122,6 +132,7 @@ export async function POST(req: Request) {
     
     // create restaurant
     const [restaurant] = await db.insert(restaurants).values({
+      userId: userId,
       name: name,
       suburbId: suburbId,
       cuisineId: cuisineId,

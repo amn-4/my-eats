@@ -4,12 +4,22 @@ import { db } from "../../../../lib/drizzle";
 import { restaurants, restaurantDietaryReqs, restaurantTags, suburbs, cuisines, dietaryReqs, tags } from "../../../../drizzle/schema";
 import { NextResponse } from "next/server";
 import { eq, and, ilike, inArray } from "drizzle-orm";
+import { auth } from "@clerk/nextjs/server";
 
 // ----------------------
 // POST /api/restaurants
 // ----------------------
 export async function POST(req: Request) {
   try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
 
     // checks if data is correct before saving to db
@@ -124,6 +134,7 @@ export async function POST(req: Request) {
     }
     
     const [restaurant] = await db.insert(restaurants).values({
+      userId: userId,
       name: body.name,
       suburbId: suburbId || null,
       cuisineId: cuisineId || null,
@@ -168,6 +179,13 @@ export async function POST(req: Request) {
 // ----------------------
 export async function GET(req: Request) {
   try {
+    const { userId } = await auth()
+    
+    // if not authenticated, return empty array
+    if (!userId) {
+      return NextResponse.json([], { status: 200 })
+    }
+
     const { searchParams } = new URL(req.url);
     
     // extract query parameters
@@ -180,6 +198,9 @@ export async function GET(req: Request) {
     
     // build filter conditions array
     const conditions = [];
+
+    // always filter by current user
+    conditions.push(eq(restaurants.userId, userId))
     
     // handle multiple suburbs (OR condition)
     if (suburbIds.length > 0) {

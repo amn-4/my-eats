@@ -36,6 +36,13 @@
       "when": 1765517751302,
       "tag": "0004_volatile_makkari",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1768798657758,
+      "tag": "0005_lethal_magdalene",
+      "breakpoints": true
     }
   ]
 }

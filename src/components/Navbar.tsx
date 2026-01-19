@@ -6,6 +6,7 @@ import { AppBar, Toolbar, Typography, Tooltip, IconButton, Box } from "@mui/mate
 import ThemeToggle from "@/components/ThemeToggle"
 import { Add } from "@mui/icons-material"
 import Link from "next/link"
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
 
 export default function Navbar() {
   return (
@@ -56,6 +57,21 @@ export default function Navbar() {
         </Tooltip>
 
         <ThemeToggle />
+
+        {/* clerk auth buttons */}
+        <SignedOut>
+          <SignInButton mode="modal">
+            <IconButton color="inherit" sx={{ ml: 2 }}>
+              Sign In
+            </IconButton>
+          </SignInButton>
+        </SignedOut>
+        <SignedIn>
+          <Box sx={{ ml: 2 }}>
+            <UserButton />
+          </Box>
+        </SignedIn>
+        
     </Toolbar>
     </AppBar>
   )
