@@ -40,6 +40,11 @@ const lineSeed = localFont({
   variable: "--font-line-seed",
 })
 
+export const metadata = {
+  title: "my.eats",
+  description: "your curated restaurant list",
+}
+
 export default function RootLayout({
   children,
 }: {

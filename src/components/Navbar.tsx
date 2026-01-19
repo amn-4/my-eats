@@ -38,7 +38,7 @@ export default function Navbar() {
               }
             }}
           >
-            melb.eats
+            my.eats
           </Typography>
         </Box>
 
