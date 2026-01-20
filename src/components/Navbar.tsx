@@ -2,16 +2,26 @@
 
 "use client"
 
-import { AppBar, Toolbar, Typography, Tooltip, IconButton, Box } from "@mui/material";
+import { AppBar, Toolbar, Typography, Tooltip, IconButton, Box, Button } from "@mui/material";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Add } from "@mui/icons-material";
 import Link from "next/link";
-import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export default function Navbar() {
   return (
-    <AppBar position="sticky">
-    <Toolbar>
+    <AppBar
+      position="sticky"
+      elevation={0}
+      sx={{
+        backdropFilter: "blur(10px)", // glassmorphism blur effect
+        backgroundColor: "rgba(var(--mui-palette-background-defaultChannel) / 0.8)", // semi-transparent
+        borderBottom: "1px solid",
+        borderColor: "divider",
+        color: "text.primary",
+      }}
+    >
+    <Toolbar sx={{ px: { xs: 2, md: 3 } }}>
         <Box sx={{ flexGrow: 1 }}>
           <Typography 
             variant="h6" 
@@ -49,7 +59,7 @@ export default function Navbar() {
             component={Link}
             href="/add"
             color="inherit"
-            sx={{ mr: 2 }}
+            sx={{ mr: 1.5 }}
             aria-label="add restaurant"
           >
             <Add />
@@ -61,9 +71,17 @@ export default function Navbar() {
         {/* clerk auth buttons */}
         <SignedOut>
           <SignInButton mode="modal">
-            <IconButton color="inherit" sx={{ ml: 2 }}>
+            <Button
+              variant="outlined"
+              color="inherit"
+              size="small"
+              sx={{ 
+                ml: 2,
+                borderRadius: 2,
+              }}
+            >
               Sign In
-            </IconButton>
+            </Button>
           </SignInButton>
         </SignedOut>
         <SignedIn>

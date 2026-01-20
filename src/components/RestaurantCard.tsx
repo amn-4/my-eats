@@ -9,7 +9,6 @@ import {
   CardContent,
   Typography,
   Chip,
-  Stack,
   Box,
 	Dialog,
 	DialogTitle,
@@ -20,9 +19,7 @@ import {
 	Button
 } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
-import { ExpandMore } from "@mui/icons-material";
-import { Edit } from "@mui/icons-material";
-import { LocationPin } from "@mui/icons-material";
+import { ExpandMore, Edit, LocationOn } from "@mui/icons-material";
 import Link from "@mui/material/Link";
 import RestaurantForm, { RestaurantFormData } from "./RestaurantForm";
 
@@ -109,146 +106,153 @@ export default function RestaurantCard({
 
   return (
 		<>
-			<Card sx={{ mb: 2 }}>
+			<Card
+				sx={{
+					mb: 2,
+					borderRadius: 3,
+					transition: "all 0.2s ease-in-out",
+					border: "1px solid",
+					borderColor: "divider",
+					"&:hover": {
+						transform: "translateY(-2px)",
+						boxShadow: 4,
+						"& .edit-button": {
+							opacity: 1,
+						},
+					},
+				}}
+			>
 				{/* main card content. clickable to expand/collapse */}
-				<CardContent>
+				<CardContent sx={{ p: 2.5 }}>
 					{/* restaurant name */}
-					<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-						<Typography variant="h5" sx={{ color: "text.primary" }}>
-							{restaurant.name}
-						</Typography>
-
-						{/* edit button */}
+					<Box sx={{ display: "flex", alignItems: "flex-start", flexDirection: "column" }}>
+						<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+							<Typography variant="h6" sx={{
+									fontWeight: 600,
+									lineHeight: 1.3,
+									mb: 0.5,
+								}}
+							>
+								{restaurant.name}
+							</Typography>
+							
+							{/* edit button */}
 							<IconButton
+								className="edit-button"
 								size="small"
 								onClick={(e) => {
 									e.stopPropagation(); // prevent card expand/collapse
 									setEditDialogOpen(true) // open edit dialog
+								}}
+								sx={{
+									opacity: 0, // hidden by default
+									transition: "opacity 0.2s",
+									p: 0.5,
+									ml: -0.5,
 								}}
 							>
 								<Edit fontSize="small" />
 							</IconButton>
 						</Box>
 
-					{/* suburb and cuisine. optional chaining (?.) handles null values */}
-					<Typography variant="body2" color="text.secondary">
-						{restaurant.suburb?.name} • {restaurant.cuisine?.name}
-					</Typography>
+						{/* suburb and cuisine. optional chaining (?.) handles null values */}
+						<Typography variant="body2" color="text.secondary">
+							{restaurant.suburb?.name} • {restaurant.cuisine?.name}
+						</Typography>
+					</Box>
 
-					{/* dietary reqs */}
-					{restaurant.tags.length > 0 ? (
-						// if restaurant has tags, dietary reqs without expandable button to the right
-						<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 2 }}>
+					{/* dietary reqs + tags */}
+					{(restaurant.dietaryReqs.length > 0 || restaurant.tags.length > 0) && (
+						<Box sx={{ display: "flex", gap: 0.75, flexWrap: "wrap", mt: 2 }}>
+							{/* dietary reqs chips */}
 							{restaurant.dietaryReqs.map((req) => (
-								<Chip key={req.id} label={req.name} />
+								<Chip 
+									key={req.id} 
+									label={req.name} 
+									size="small"
+									sx={{
+										borderRadius: 2,
+										fontWeight: 500,
+										fontSize: "0.75rem",
+									}}
+								/>
+							))}
+							{/* tag chips - outlined to distinguish from dietary reqs */}
+							{restaurant.tags.map((tag) => (
+								<Chip
+									key={tag.id}
+									size="small"
+									label={tag.name}
+									variant="outlined"
+									color="secondary"
+									sx={{
+										borderRadius: 2,
+										fontWeight: 500,
+										fontSize: "0.75rem",
+									}}
+								/>
 							))}
 						</Box>
-					) : (
-						// if no tags, dietary reqs with button on right
-						<Stack
-							direction="row"
-							spacing={1}
-							sx={{ mt: 2, alignItems: "center" }}
-						>
-							<Box
-								sx={{ display: "flex", gap: 1, flexWrap: "wrap", flexGrow: 1 }}
-							>
-								{restaurant.dietaryReqs.map((req) => (
-									<Chip key={req.id} label={req.name} />
-								))}
-							</Box>
-							<IconButton
-								onClick={handleExpandClick}
-								sx={{
-									transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-									transition: "transform 0.3s",
-									marginLeft: "auto",
-								}}
-								aria-label="show more"
-							>
-								<ExpandMore />
-							</IconButton>
-						</Stack>
 					)}
 
-					{/* tags row with expand button, if tags exist */}
-					{restaurant.tags.length > 0 && (
-						<Stack
-							direction="row"
-							spacing={1}
-							sx={{ mt: 1, alignItems: "center" }}
+					{/* expand button always at bottom right */}
+					<Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+						<IconButton
+							onClick={handleExpandClick}
+							size="small"
+							sx={{
+								transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+								transition: "transform 0.3s",
+							}}
+							aria-label="show more"
 						>
-							{/* tags on left */}
-							<Box
-								sx={{ display: "flex", gap: 1, flexWrap: "wrap", flexGrow: 1 }}
-							>
-								{restaurant.tags.map((tag) => (
-									<Chip
-										key={tag.id}
-										size="small"
-										label={tag.name}
-										color="secondary"
-									/>
-								))}
-							</Box>
-							{/* expand button on the right */}
-							<IconButton
-								onClick={handleExpandClick}
-								sx={{
-									transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-									transition: "transform 0.3s",
-									marginLeft: "auto",
-								}}
-								aria-label="show more"
-							>
-								<ExpandMore />
-							</IconButton>
-						</Stack>
-					)}
+							<ExpandMore />
+						</IconButton>
+					</Box>
 				</CardContent>
 
 				{/* collapsible section */}
 				<Collapse in={expanded}>
-					<CardContent>
-						{/* address */}
-						{restaurant.address && ( // && operator for conditional rendering (if address/opening hours are not null/empty)
-							<Typography
-								variant="body2"
-								sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-							>
-								<LocationPin fontSize="small" />
+					<CardContent sx={{ pt: 0, px: 2.5, pb: 2.5 }}>
+						{/* address with map link */}
+						{restaurant.address && (
+							<Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 2 }}>
+								<LocationOn fontSize="small" color="action" sx={{ mt: 0.25 }} />
 								<Link
 									href={restaurant.googleMapsUrl || "#"}
 									target="_blank"
 									rel="noopener noreferrer"
 									underline="hover"
+									variant="body2"
 								>
 									{restaurant.address}
 								</Link>
-							</Typography>
+							</Box>
 						)}
 
 						{/* opening hours */}
 						{restaurant.openingHours?.weekdayText && (
-							<>
+							<Box sx={{ mb: 2 }}>
 								<Typography
 									variant="subtitle2"
-									sx={{ mt: 2, fontWeight: "bold" }}
+									sx={{ fontWeight: 600, mb: 1 }}
 								>
-									Opening hours:
+									Opening hours
 								</Typography>
 								{restaurant.openingHours.weekdayText.map((day, index) => (
-									<Typography key={index} variant="body2">
+									<Typography key={index} variant="body2" color="text.secondary" sx={{ lineHeight: 1.8 }}>
 										{day}
 									</Typography>
 								))}
-							</>
+							</Box>
 						)}
+
+						{/* delete button */}
 						<Button 
 							variant="outlined" 
 							color="error" 
 							fullWidth
-							sx={{ mt: 2 }}
+							size="small"
 							onClick={(e) => {
 								e.stopPropagation()
 								setDeleteDialogOpen(true)
@@ -259,6 +263,7 @@ export default function RestaurantCard({
 					</CardContent>
 				</Collapse>
 			</Card>
+
 			{/* delete confirmation dialog */}
 			<Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
 				<DialogTitle>Delete Restaurant</DialogTitle>

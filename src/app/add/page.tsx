@@ -90,7 +90,14 @@ export default function AddRestaurantPage() {
       </SignedIn>
 
       <SignedOut>
-        <Container sx={{ py: 8, textAlign: "center" }}>
+        <Container sx={{ 
+          minHeight: "80vh", 
+          display: "flex", 
+          flexDirection: "column", 
+          justifyContent: "center", 
+          alignItems: "center",
+          textAlign: "center"
+        }}>
           <Typography variant="h3" sx={{ mb: 2 }}>
             Sign in to add restaurants
           </Typography>

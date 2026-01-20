@@ -8,6 +8,7 @@ import { Container, Typography, Grid, Button } from "@mui/material";
 import RestaurantCard from "@/components/RestaurantCard";
 import FilterBar from "@/components/FilterBar";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import RestaurantIcon from "@mui/icons-material/Restaurant";
 
 export default function HomePage() {
   // state to store array of restaurants fetched from API
@@ -77,7 +78,15 @@ export default function HomePage() {
       </SignedIn>
 
         <SignedOut>
-          <Container sx={{ py: 8, textAlign: "center" }}>
+          <Container sx={{ 
+            minHeight: "80vh", 
+            display: "flex", 
+            flexDirection: "column", 
+            justifyContent: "center", 
+            alignItems: "center",
+            textAlign: "center"
+          }}>
+            <RestaurantIcon sx={{ fontSize: 80, mb: 2, color: "primary.main" }} />
             <Typography variant="h3" sx={{ mb: 2 }}>
               Welcome to MyEats!
             </Typography>
