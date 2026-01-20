@@ -42,8 +42,8 @@ const lineSeed = localFont({
 })
 
 export const metadata = {
-  title: "my.eats",
-  description: "your curated restaurant list",
+  title: "MyEats",
+  description: "Your curated restaurant list",
 }
 
 export default function RootLayout({

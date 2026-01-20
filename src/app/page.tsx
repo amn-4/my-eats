@@ -4,9 +4,10 @@
 
 import { Restaurant } from "@/types/restaurant"
 import { useEffect, useState } from "react";
-import { Container, Typography, Grid } from "@mui/material";
+import { Container, Typography, Grid, Button } from "@mui/material";
 import RestaurantCard from "@/components/RestaurantCard";
 import FilterBar from "@/components/FilterBar";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 export default function HomePage() {
   // state to store array of restaurants fetched from API
@@ -51,25 +52,45 @@ export default function HomePage() {
   }
   
   return (
-    <Container sx={{ py: 4 }}>
-      {/* page title */}
-      <Typography variant="h3" align="center" sx={{ mb: 4 }}>
-        Restaurants
-      </Typography>
+    <>
+      <SignedIn>
+        <Container sx={{ py: 4 }}>
+          {/* page title */}
+          <Typography variant="h3" align="center" sx={{ mb: 4 }}>
+            Restaurants
+          </Typography>
 
-      <FilterBar onFiltersChange={setActiveFilters} />
+          <FilterBar onFiltersChange={setActiveFilters} />
 
-      {/* show loading text while fetching */}
-      {loading && <Typography>Loading...</Typography>}
-      
-      {/* responsive grid */}
-      <Grid container spacing={2}>
-        {restaurants.map(restaurant => (
-          <Grid key={restaurant.id} size={{ xs: 12, md: 6, lg: 4 }}>
-            <RestaurantCard restaurant={restaurant} onDeleted={handleRestaurantDeleted} />
+          {/* show loading text while fetching */}
+          {loading && <Typography>Loading...</Typography>}
+          
+          {/* responsive grid */}
+          <Grid container spacing={2}>
+            {restaurants.map(restaurant => (
+              <Grid key={restaurant.id} size={{ xs: 12, md: 6, lg: 4 }}>
+                <RestaurantCard restaurant={restaurant} onDeleted={handleRestaurantDeleted} />
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
-    </Container>
+        </Container>
+      </SignedIn>
+
+        <SignedOut>
+          <Container sx={{ py: 8, textAlign: "center" }}>
+            <Typography variant="h3" sx={{ mb: 2 }}>
+              Welcome to MyEats!
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 4 }}>
+              Sign in to view and manage your curated restaurant list
+            </Typography>
+            <SignInButton mode="modal">
+              <Button variant="contained" size="large">
+                Sign In
+              </Button>
+            </SignInButton>
+          </Container>
+      </SignedOut>
+    </>
   )
 }

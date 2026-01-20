@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { Container, Typography, Button, Stack } from "@mui/material";
 import RestaurantForm, { RestaurantFormData } from "@/components/RestaurantForm";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 export default function AddRestaurantPage() {
   
@@ -60,29 +61,46 @@ export default function AddRestaurantPage() {
   }
   
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Typography variant="h3" sx={{ mb: 4 }}>
-        Add Restaurant
-      </Typography>
-      
-      <Stack component="form" onSubmit={handleSubmit} spacing={3}>
-        {/* reusable form component */}
-        <RestaurantForm 
-          initialData={formData}
-          onChange={setFormData} 
-          key={resetCounter}
-        />
-        
-        {/* submit button */}
-        <Button 
-          variant="contained" 
-          type="submit"
-          disabled={submitting}
-          fullWidth
-        >
-          {submitting ? "Adding..." : "Add Restaurant"}
-        </Button>
-      </Stack>
-    </Container>
+    <>
+      <SignedIn>
+        <Container maxWidth="sm" sx={{ py: 4 }}>
+          <Typography variant="h3" sx={{ mb: 4 }}>
+            Add Restaurant
+          </Typography>
+          
+          <Stack component="form" onSubmit={handleSubmit} spacing={3}>
+            {/* reusable form component */}
+            <RestaurantForm 
+              initialData={formData}
+              onChange={setFormData} 
+              key={resetCounter}
+            />
+            
+            {/* submit button */}
+            <Button 
+              variant="contained" 
+              type="submit"
+              disabled={submitting}
+              fullWidth
+            >
+              {submitting ? "Adding..." : "Add Restaurant"}
+            </Button>
+          </Stack>
+        </Container>
+      </SignedIn>
+
+      <SignedOut>
+        <Container sx={{ py: 8, textAlign: "center" }}>
+          <Typography variant="h3" sx={{ mb: 2 }}>
+            Sign in to add restaurants
+          </Typography>
+          <SignInButton mode="modal">
+            <Button variant="contained" size="large">
+              Sign In
+            </Button>
+          </SignInButton>
+        </Container>
+      </SignedOut>
+    </>
   )
 }

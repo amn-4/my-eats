@@ -10,8 +10,9 @@ import {
   dietaryReqs, 
   tags 
 } from "../../../../../drizzle/schema";
-import { eq, ilike } from "drizzle-orm";
+import { eq, ilike, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
 // -------------------------
 // GET /api/restaurants/:id
@@ -22,6 +23,11 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     
     // query with joins
     const result = await db
@@ -33,7 +39,7 @@ export async function GET(
       .from(restaurants)
       .leftJoin(suburbs, eq(restaurants.suburbId, suburbs.id))
       .leftJoin(cuisines, eq(restaurants.cuisineId, cuisines.id))
-      .where(eq(restaurants.id, id))
+      .where(and(eq(restaurants.id, id), eq(restaurants.userId, userId)))
       .limit(1);
     
     // if no restaurant found, return 404
@@ -89,6 +95,12 @@ export async function PUT(
     const { id } = await params;
     // parse the json body
     const body = await req.json();
+
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
     // checks if at least one field is provided
     if (Object.keys(body).length === 0) {
@@ -182,7 +194,7 @@ export async function PUT(
       updated = await db
         .update(restaurants)
         .set(updates)
-        .where(eq(restaurants.id, id))
+        .where(and(eq(restaurants.id, id), eq(restaurants.userId, userId)))
         .returning();
         
       if (updated.length === 0) {
@@ -196,7 +208,7 @@ export async function PUT(
       updated = await db
         .select()
         .from(restaurants)
-        .where(eq(restaurants.id, id));
+        .where(and(eq(restaurants.id, id), eq(restaurants.userId, userId)));
       
       if (updated.length === 0) {
         return NextResponse.json(
@@ -312,11 +324,17 @@ export async function DELETE(
   try {
     // parse the id
     const { id } = await params;
+
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     
     // delete restaurant from database (dietary reqs and tags will cascade delete)
     const deleted = await db
       .delete(restaurants)
-      .where(eq(restaurants.id, id))
+      .where(and(eq(restaurants.id, id), eq(restaurants.userId, userId)))
       .returning();
     
     // if nothing was deleted, restaurant doesn't exist

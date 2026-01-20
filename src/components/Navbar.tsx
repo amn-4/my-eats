@@ -2,11 +2,11 @@
 
 "use client"
 
-import { AppBar, Toolbar, Typography, Tooltip, IconButton, Box } from "@mui/material"
-import ThemeToggle from "@/components/ThemeToggle"
-import { Add } from "@mui/icons-material"
-import Link from "next/link"
-import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
+import { AppBar, Toolbar, Typography, Tooltip, IconButton, Box } from "@mui/material";
+import ThemeToggle from "@/components/ThemeToggle";
+import { Add } from "@mui/icons-material";
+import Link from "next/link";
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export default function Navbar() {
   return (
@@ -39,7 +39,7 @@ export default function Navbar() {
               }
             }}
           >
-            my.eats
+            MyEats
           </Typography>
         </Box>
 
