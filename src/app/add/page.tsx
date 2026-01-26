@@ -3,7 +3,7 @@
 "use client"
 
 import { useState } from "react";
-import { Container, Typography, Button, Stack, Card, CardContent } from "@mui/material";
+import { Container, Typography, Button, Stack, Card, CardContent, Snackbar, Alert } from "@mui/material";
 import RestaurantForm, { RestaurantFormData } from "@/components/RestaurantForm";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
@@ -23,6 +23,17 @@ export default function AddRestaurantPage() {
   const [submitting, setSubmitting] = useState(false)
 
   const [resetCounter, setResetCounter] = useState(0)
+
+  // snackbar state for success/error messages
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean
+    message: string
+    severity: "success" | "error"
+  }>({
+    open: false,
+    message: "",
+    severity: "success"
+  })
   
   // handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,14 +59,26 @@ export default function AddRestaurantPage() {
         })
         setResetCounter(prev => prev + 1)
         setSubmitting(false)
-        alert("Restaurant added successfully!")
+        setSnackbar({
+          open: true,
+          message: "Restaurant added successfully!", 
+          severity: "success" 
+        })
       } else {
-        alert("Failed to add restaurant")
+        setSnackbar({
+          open: true,
+          message: "Failed to add restaurant",
+          severity: "error"
+        })
         setSubmitting(false)
       }
     } catch (error) {
       console.error(error)
-      alert("Error adding restaurant")
+      setSnackbar({
+        open: true,
+        message: "Error adding restaurant",
+        severity: "error"
+      })
       setSubmitting(false)
     }
   }
@@ -126,6 +149,24 @@ export default function AddRestaurantPage() {
           </SignInButton>
         </Container>
       </SignedOut>
+      {/* success/error snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={(_event, reason) => {
+          if (reason === "clickaway") return
+          setSnackbar(prev => ({ ...prev, open: false }))
+        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert 
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </>
   )
 }
