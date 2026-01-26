@@ -14,8 +14,8 @@ export default function Navbar() {
       position="sticky"
       elevation={0}
       sx={{
-        backdropFilter: "blur(10px)", // glassmorphism blur effect
-        backgroundColor: "rgba(var(--mui-palette-background-defaultChannel) / 0.8)", // semi-transparent
+        backdropFilter: "blur(10px)",
+        backgroundColor: "rgba(var(--mui-palette-background-defaultChannel) / 0.8)",
         borderBottom: "1px solid",
         borderColor: "divider",
         color: "text.primary",

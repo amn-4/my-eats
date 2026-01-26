@@ -3,7 +3,7 @@
 "use client"
 
 import { useState } from "react";
-import { Container, Typography, Button, Stack } from "@mui/material";
+import { Container, Typography, Button, Stack, Card, CardContent } from "@mui/material";
 import RestaurantForm, { RestaurantFormData } from "@/components/RestaurantForm";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
@@ -64,28 +64,46 @@ export default function AddRestaurantPage() {
     <>
       <SignedIn>
         <Container maxWidth="sm" sx={{ py: 4 }}>
-          <Typography variant="h3" sx={{ mb: 4 }}>
-            Add Restaurant
-          </Typography>
+          {/* page title */}
+            <Typography variant="h4" sx={{ mb: 3, textAlign: "center" }}>
+              Add Restaurant
+            </Typography>
           
-          <Stack component="form" onSubmit={handleSubmit} spacing={3}>
-            {/* reusable form component */}
-            <RestaurantForm 
-              initialData={formData}
-              onChange={setFormData} 
-              key={resetCounter}
-            />
-            
-            {/* submit button */}
-            <Button 
-              variant="contained" 
-              type="submit"
-              disabled={submitting}
-              fullWidth
-            >
-              {submitting ? "Adding..." : "Add Restaurant"}
-            </Button>
-          </Stack>
+          {/* form card */}
+          <Card 
+            sx={{ 
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider"
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Stack component="form" onSubmit={handleSubmit} spacing={3}>
+                {/* reusable form component */}
+                <RestaurantForm 
+                  initialData={formData}
+                  onChange={setFormData} 
+                  key={resetCounter}
+                />
+              
+                {/* submit button */}
+                <Button 
+                  variant="contained" 
+                  type="submit"
+                  disabled={submitting}
+                  fullWidth
+                  size="large"
+                  sx={{
+                    borderRadius: 2,
+                    py: 1.5,
+                    fontWeight: 600,
+                  }}
+                >
+                  {submitting ? "Adding..." : "Add Restaurant"}
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
         </Container>
       </SignedIn>
 
