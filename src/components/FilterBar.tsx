@@ -44,6 +44,7 @@ type FilterValues = {
   tagIds: string[];
   openNow: boolean;
 	search: string;
+	timezone: string;
 };
 
 export default function FilterBar({
@@ -92,14 +93,17 @@ export default function FilterBar({
 
   // notify parent component whenever any filter changes
 	useEffect(() => {
-		onFiltersChange({
-			suburbIds: selectedSuburbs.map(item => typeof item === "string" ? item : item.id),
-			cuisineIds: selectedCuisines.map(item => typeof item === "string" ? item : item.id),
-			dietaryReqIds: selectedDietaryReqs.map(item => typeof item === "string" ? item : item.id),
-			tagIds: selectedTags.map(item => typeof item === "string" ? item : item.id),
-			openNow: openNow,
-			search: searchQuery,
-		})
+	const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+	
+	onFiltersChange({
+		suburbIds: selectedSuburbs.map(item => typeof item === "string" ? item : item.id),
+		cuisineIds: selectedCuisines.map(item => typeof item === "string" ? item : item.id),
+		dietaryReqIds: selectedDietaryReqs.map(item => typeof item === "string" ? item : item.id),
+		tagIds: selectedTags.map(item => typeof item === "string" ? item : item.id),
+		openNow: openNow,
+		search: searchQuery,
+		timezone: userTimezone,
+	})
 	}, [selectedSuburbs, selectedCuisines, selectedDietaryReqs, selectedTags, openNow, searchQuery, onFiltersChange])
 
 	// helper function to render filter controls (used in both desktop and mobile)

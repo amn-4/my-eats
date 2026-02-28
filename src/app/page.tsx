@@ -22,6 +22,7 @@ export default function HomePage() {
     tagIds: [] as string[],
     openNow: false,
     search: "",
+    timezone: "",
   })
 
   // state for loading status
@@ -37,6 +38,7 @@ export default function HomePage() {
     activeFilters.tagIds.forEach(id => params.append("tagId", id))
     if (activeFilters.openNow) params.append("openNow", "true")
     if (activeFilters.search) params.append("search", activeFilters.search)
+    if (activeFilters.timezone) params.append("timezone", activeFilters.timezone)
     
       // fetch restaurants with filter parameters in url
     fetch(`/api/restaurants?${params.toString()}`)

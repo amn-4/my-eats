@@ -195,6 +195,7 @@ export async function GET(req: Request) {
     const tagIds = searchParams.getAll("tagId");
     const search = searchParams.get("search"); // for searching by name
     const openNow = searchParams.get("openNow");
+    const timezone = searchParams.get("timezone") || "Australia/Melbourne";
     
     // build filter conditions array
     const conditions = [];
@@ -301,7 +302,11 @@ export async function GET(req: Request) {
 
     // filter by "open now"
     if (openNow === "true") {
-      const now = new Date();
+      // convert to user's timezone
+      const userTimeString = new Date().toLocaleString("en-US", { 
+        timeZone: timezone
+      });
+      const now = new Date(userTimeString);
       const dayOfWeek = now.getDay(); // 0 = sunday, 1 = monday, ..., 6 = saturday
       const currentTime = now.getHours() * 100 + now.getMinutes(); // e.g., 1430 for 2:30pm
       
