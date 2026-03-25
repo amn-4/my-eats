@@ -91,6 +91,12 @@ export default function RestaurantForm({ initialData, onChange }: RestaurantForm
         getOptionLabel={(option) => typeof option === "string" ? option : option.name}
         value={selectedSuburb}
         onChange={(e, value) => setSelectedSuburb(value)}
+        onInputChange={(e, value) => {
+          // capture typed value immediately
+          if (value && !suburbs.find(s => s.name.toLowerCase() === value.toLowerCase())) {
+            setSelectedSuburb(value)
+          }
+        }}
         renderInput={(params) => <TextField {...params} label="Suburb" />}
       />
       
@@ -101,6 +107,12 @@ export default function RestaurantForm({ initialData, onChange }: RestaurantForm
         getOptionLabel={(option) => typeof option === "string" ? option : option.name}
         value={selectedCuisine}
         onChange={(e, value) => setSelectedCuisine(value)}
+        onInputChange={(e, value) => {
+          // capture typed value immediately
+          if (value && !cuisines.find(c => c.name.toLowerCase() === value.toLowerCase())) {
+            setSelectedCuisine(value)
+          }
+        }}
         renderInput={(params) => <TextField {...params} label="Cuisine" />}
       />
       

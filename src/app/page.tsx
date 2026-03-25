@@ -40,7 +40,7 @@ export default function HomePage() {
     if (activeFilters.search) params.append("search", activeFilters.search)
     if (activeFilters.timezone) params.append("timezone", activeFilters.timezone)
     
-      // fetch restaurants with filter parameters in url
+    // fetch restaurants with filter parameters in url
     fetch(`/api/restaurants?${params.toString()}`)
       .then(res => res.json())
       .then(data => {
