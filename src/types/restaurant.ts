@@ -16,5 +16,7 @@ export type Restaurant = {
     periods?: Array<{ open: { day: number; time: string } }>
   } | null
   googleMapsUrl: string | null
+  googlePlaceId: string | null
+  lastUpdated: string | null
   createdAt: string
 }

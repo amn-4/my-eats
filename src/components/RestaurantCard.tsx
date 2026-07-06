@@ -50,7 +50,33 @@ export default function RestaurantCard({
 	})
 
   // toggle function: flips expanded state (true -> false or false -> true)
-  const handleExpandClick = () => setExpanded(!expanded);
+  const handleExpandClick = async () => {
+    const willExpand = !expanded;
+    setExpanded(willExpand);
+
+    // if expanding and data is old (>30 days), refresh from Google Places
+    if (willExpand && restaurant.googlePlaceId) {
+      const lastUpdated = restaurant.lastUpdated ? new Date(restaurant.lastUpdated) : null;
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      // if never updated or older than 30 days, refresh
+      if (!lastUpdated || lastUpdated < thirtyDaysAgo) {
+        try {
+          const response = await fetch(`/api/restaurants/${restaurant.id}/refresh`, {
+            method: "POST",
+          });
+
+          if (response.ok) {
+            console.log("Restaurant data refreshed from Google Places");
+            window.location.reload();
+          }
+        } catch (error) {
+          console.error("Failed to refresh restaurant data:", error);
+        }
+      }
+    }
+  };
 
 	// handle restaurant deletion
 	const handleDelete = async () => {
