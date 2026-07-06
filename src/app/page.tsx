@@ -53,6 +53,11 @@ export default function HomePage() {
   const handleRestaurantDeleted = (id: string) => {
     setRestaurants(prev => prev.filter(r => r.id !== id))
   }
+
+  // handle restaurant update - replace just this restaurant in the list without reloading page
+  const handleRestaurantUpdated = (updatedRestaurant: Restaurant) => {
+    setRestaurants(prev => prev.map(r => r.id === updatedRestaurant.id ? updatedRestaurant : r))
+  }
   
   return (
     <>
@@ -72,7 +77,7 @@ export default function HomePage() {
           <Grid container spacing={2}>
             {restaurants.map(restaurant => (
               <Grid key={restaurant.id} size={{ xs: 12, md: 6, lg: 4 }}>
-                <RestaurantCard restaurant={restaurant} onDeleted={handleRestaurantDeleted} />
+                <RestaurantCard restaurant={restaurant} onDeleted={handleRestaurantDeleted} onUpdated={handleRestaurantUpdated} />
               </Grid>
             ))}
           </Grid>

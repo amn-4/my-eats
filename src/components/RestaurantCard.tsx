@@ -26,9 +26,11 @@ import RestaurantForm, { RestaurantFormData } from "./RestaurantForm";
 export default function RestaurantCard({
   restaurant,
 	onDeleted,
+	onUpdated,
 }: {
   restaurant: Restaurant;
 	onDeleted: (id: string) => void;
+	onUpdated: (restaurant: Restaurant) => void;
 }) {
   // useState to track if card is expanded (true) or collapsed (false)
   const [expanded, setExpanded] = useState(false);
@@ -68,8 +70,20 @@ export default function RestaurantCard({
           });
 
           if (response.ok) {
+						const freshData = await response.json();
+
+            // merge the updated google places data into the existing restaurant
+            // (the refresh endpoint only returns raw db fields, not suburb/cuisine/tags,
+            // so we keep those from the current restaurant prop)
+            onUpdated({
+              ...restaurant,
+              address: freshData.address,
+              openingHours: freshData.openingHours,
+              googleMapsUrl: freshData.googleMapsUrl,
+              lastUpdated: freshData.lastUpdated,
+            });
+
             console.log("Restaurant data refreshed from Google Places");
-            window.location.reload();
           }
         } catch (error) {
           console.error("Failed to refresh restaurant data:", error);
