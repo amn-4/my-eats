@@ -40,6 +40,7 @@ export const restaurants = pgTable("restaurants", {
   address: text(),
   phone: text(),
   openingHours: jsonb(),
+  lastUpdated: timestamp({ precision: 3, mode: "string" }),
 
   // social media
   source: text(),
