@@ -4,7 +4,7 @@
 
 import { Restaurant } from "@/types/restaurant"
 import { useEffect, useState } from "react";
-import { Container, Typography, Grid, Button } from "@mui/material";
+import { Container, Typography, Grid, Button, Box } from "@mui/material";
 import RestaurantCard from "@/components/RestaurantCard";
 import FilterBar from "@/components/FilterBar";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
@@ -28,7 +28,20 @@ export default function HomePage() {
   // state for loading status
   const [loading, setLoading] = useState(true)
 
-  // fetch restaurants whenever active filters change
+  // pagination state and math
+  const [currentPage, setCurrentPage] = useState(1) // start at page 1
+  const itemsPerPage = 12
+
+  const totalPages = Math.ceil(restaurants.length / itemsPerPage)
+
+  // ensure current page is within bounds of total pages
+  // (e.g. if filters shrink the list while you're on page 3, this pulls you back to the last real page)
+  const safeCurrentPage = Math.min(currentPage, totalPages) || 1
+
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const restaurantsToShow = restaurants.slice(startIndex, endIndex)
+
   useEffect(() => {
     // build query string from active filters
     const params = new URLSearchParams()
@@ -75,12 +88,36 @@ export default function HomePage() {
           
           {/* responsive grid */}
           <Grid container spacing={2}>
-            {restaurants.map(restaurant => (
+            {restaurantsToShow.map(restaurant => (
               <Grid key={restaurant.id} size={{ xs: 12, md: 6, lg: 4 }}>
                 <RestaurantCard restaurant={restaurant} onDeleted={handleRestaurantDeleted} onUpdated={handleRestaurantUpdated} />
               </Grid>
             ))}
           </Grid>
+          {/* pagination controls */}
+          {totalPages > 1 && ( // only show pagination if more than 1 page
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 2, mt: 4 }}>
+              <Button
+                variant="outlined"
+                onClick={() => setCurrentPage(p => p - 1)}
+                disabled={safeCurrentPage === 1}
+              >
+                Previous
+              </Button>
+
+              <Typography>
+                Page {safeCurrentPage} of {totalPages}
+              </Typography>
+
+              <Button
+                variant="outlined"
+                onClick={() => setCurrentPage(p => p + 1)}
+                disabled={safeCurrentPage === totalPages}
+              >
+                Next
+              </Button>
+            </Box>
+          )}
         </Container>
       </SignedIn>
 
